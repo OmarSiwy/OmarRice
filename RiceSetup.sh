@@ -48,6 +48,10 @@ if [[ "$CREATE_USER" =~ ^[Yy]$ ]]; then
   fi
 else
   USERNAME=$(cat /var/log/last_username)
+  if [ -z "$USERNAME" ]; then
+    print_step "No user found. Exiting."
+    exit 1
+  fi
   print_step "Skipping user creation."
 fi
 
@@ -92,7 +96,7 @@ sudo pacman -S noto-fonts ttf-opensans ttf-firacode-nerd ttf-jetbrains-mono noto
 
 # Ricing:
 print_step "Installing GUI and ricing dependencies"
-sudo pacman -S base-devel hyprland hyperpaper swayidle python-pillow --noconfirm
+sudo pacman -S base-devel hyprland hyprpaper swayidle python-pillow --noconfirm
 sudo pacman -S alacritty neovim wofi waybar imv firefox gammastep lsd notification-daemon xdg-desktop-portal-gtk --noconfirm
 
 # Media
