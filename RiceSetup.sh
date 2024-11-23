@@ -42,11 +42,9 @@ fi
 
 # Select GPU type as the new user (direct command approach)
 print_step "Switching to the new user for GPU selection and setup"
-GPU=$(su - "$USERNAME" -c '
-    echo "Select your GPU type (intel/nvidia/amd):"
-    read GPU
-    echo $GPU
-')
+echo "Select your GPU type (intel/nvidia/amd):"
+read GPU
+echo $GPU
 
 case "$GPU" in
     intel)
