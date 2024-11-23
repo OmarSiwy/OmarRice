@@ -90,6 +90,7 @@ sudo pacman -S vlc zathura zathura-pdf-mupdf --noconfirm
 # Programming
 print_step "Installing programming and development tools"
 sudo pacman -S rust lua luarocks python python-pip zig --noconfirm
+sudo pacman -S fd ripgrep bat eza tree-sitter tree-sitter-cli --noconfirm
 
 # Digital Hardware/Simulation
 print_step "Installing digital hardware and simulation tools"
@@ -137,9 +138,15 @@ runuser -l "$USERNAME" <<EOF
   fi
 
   if [ -d /root/.wallpapers ]; then
-    mv /root/.wallpapers "\$HOME/Wallpapers"
+    mv /root/.wallpapers "\$HOME/.wallpapers"
   else
     echo "No .wallpapers directory found in /root. Skipping."
+  fi
+
+  if [ -f /root/.bashrc ]; then
+    mv /root/.bashrc "\$HOME/.bashrc"
+  else
+    echo "No .basrc file found in /root. Skipping."
   fi
 EOF
 
@@ -147,3 +154,5 @@ EOF
 # Final message and optional user switch
 print_step "Setup complete!"
 su - "$USERNAME"
+
+sudo reboot
