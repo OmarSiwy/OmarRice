@@ -110,12 +110,7 @@ fi
 
 # User-specific setup
 print_step "Setting up user-specific environment for $USERNAME"
-
 sudo -u "$USERNAME" bash <<'EOF'
-  # Install Yay packages
-  yay -S hyprshot wlogout swaylock-effects-git pfetch --noconfirm
-  yay -S icarus-verilog --noconfirm
-
   # Create user directories
   echo "Configuring XDG user directories"
   mkdir -p "$HOME/.config" "$HOME/Wallpapers"
@@ -129,6 +124,11 @@ sudo -u "$USERNAME" bash <<'EOF'
   cd yay
   makepkg -si --noconfirm
 
+  # Install Yay packages
+  yay -S hyprshot wlogout swaylock-effects-git pfetch --noconfirm
+  yay -S iverilog --noconfirm
+
+
   # Apply user-specific configurations
   echo "Copying user-specific configurations"
   cp -r /root/.config "$HOME/.config"
@@ -136,10 +136,5 @@ sudo -u "$USERNAME" bash <<'EOF'
 EOF
 
 # Final message and optional user switch
-print_step "Setup complete! You can now switch to the new user."
-read -p "Switch to $USERNAME now? (y/n): " SWITCH_USER
-if [[ "$SWITCH_USER" == "y" ]]; then
-    su - "$USERNAME"
-else
-    echo "You can switch to the new user anytime by running: su - $USERNAME"
-fi
+print_step "Setup complete!"
+su - "$USERNAME"
