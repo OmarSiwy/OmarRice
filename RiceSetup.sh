@@ -81,7 +81,7 @@ sudo pacman -S noto-fonts ttf-opensans ttf-firacode-nerd ttf-jetbrains-mono noto
 
 # Ricing:
 print_step "Installing GUI and ricing dependencies"
-sudo pacman -S alacritty neovim wofi waybar imv firefox gammastep lsd --noconfirm
+sudo pacman -S alacritty neovim wofi waybar imv firefox gammastep lsd notification-daemon xdg-desktop-portal-gtk --noconfirm
 
 # Media
 print_step "Installing media and productivity tools"
@@ -101,6 +101,18 @@ print_step "Enabling necessary services"
 sudo systemctl enable fstrim.timer
 sudo systemctl enable ntpd
 timedatectl set-ntp true
+
+# Setup Ranger Deviicons
+print_step "Setting up Ranger Devicons"
+git clone https://github.com/alexanderjeurissen/ranger_devicons.git ~/.config/ranger/plugins/ranger_devicons
+pip install --user pynvim
+
+print_step "Setting up Notifications"
+SERVICE_FILE="/usr/share/dbus-1/services/org.freedesktop.Notifications.service"
+SERVICE_CONTENT="[D-BUS Service]
+Name=org.freedesktop.Notifications
+Exec=/usr/lib/notification-daemon-1.0/notification-daemon"
+echo "$SERVICE_CONTENT" > "$SERVICE_FILE"
 
 # User-specific setup
 print_step "Setting up user-specific environment for $USERNAME"
@@ -141,6 +153,12 @@ runuser -l "$USERNAME" <<EOF
     mv /root/.wallpapers "\$HOME/.wallpapers"
   else
     echo "No .wallpapers directory found in /root. Skipping."
+  fi
+
+  if [ -f /root/.bashrc ]; then
+    mv /root/.bashrc "\$HOME/.bashrc"
+  else
+    echo "No .basrc file found in /root. Skipping."
   fi
 
   if [ -f /root/.bashrc ]; then
