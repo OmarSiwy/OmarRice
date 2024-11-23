@@ -26,68 +26,77 @@ fdisk "$DISK" <<EOF
 g # Create a new GPT partition table (for UEFI)
 EOF
 if [ "$BOOT_MODE" == "UEFI" ]; then
+    echo "Partitioning for UEFI system..."
+
+    # Run fdisk for UEFI partitioning
     fdisk "$DISK" <<EOF
-n
-1
-
-+300M
-t
-1
-n
-2
-
-+512M
-t
-2
-19
-n
-3
-
-
-w
+g   # Create GPT partition table
+n   # New partition
+1   # Partition 1 (boot)
+    # Default start sector
++500M   # 500MB size for boot
+t   # Change type
+1   # Type: EFI system partition
+n   # New partition
+2   # Partition 2 (swap)
+    # Default start sector
++16000M # 16GB swap
+t   # Change type
+2   # Select partition 2
+19  # Type: Linux swap
+n   # New partition
+3   # Partition 3 (root)
+    # Default start sector
+    # Use rest of the disk
+w   # Write changes and exit
 EOF
 
-    # Format partitions
+    # Formatting
+    echo "Formatting partitions..."
     mkfs.fat -F32 "${DISK}1" # Boot partition
-    mkswap "${DISK}2"         # Swap partition
-    mkfs.ext4 "${DISK}3"      # Root partition
+    mkswap "${DISK}2"        # Swap partition
+    mkfs.ext4 "${DISK}3"     # Root partition
 
-    # Mount partitions
+    # Mounting
+    echo "Mounting partitions..."
     mount "${DISK}3" /mnt
     mkdir -p /mnt/boot
     mount "${DISK}1" /mnt/boot
     swapon "${DISK}2"
 
 else
-    # Create partitions for BIOS
+    echo "Partitioning for BIOS system..."
+
+    # Run fdisk for BIOS partitioning
     fdisk "$DISK" <<EOF
-o # Create a new MBR partition table
-n
-p
-1
-
-+512M
-t
-82
-n
-p
-2
-
-
-a
-2
-w
+o   # Create MBR partition table
+n   # New partition
+p   # Primary
+1   # Partition 1 (swap)
+    # Default start sector
++16000M # 16GB swap
+t   # Change type
+82  # Type: Linux swap
+n   # New partition
+p   # Primary
+2   # Partition 2 (root)
+    # Default start sector
+    # Use rest of the disk
+a   # Make partition bootable
+2   # Mark partition 2 as bootable
+w   # Write changes and exit
 EOF
 
-    # Format partitions
-    mkswap "${DISK}1"         # Swap partition
-    mkfs.ext4 "${DISK}2"      # Root partition
+    # Formatting
+    echo "Formatting partitions..."
+    mkswap "${DISK}1"        # Swap partition
+    mkfs.ext4 "${DISK}2"     # Root partition
 
-    # Mount partitions
+    # Mounting
+    echo "Mounting partitions..."
     mount "${DISK}2" /mnt
     swapon "${DISK}1"
 fi
-
 echo "Partitioning complete. Verifying disk layout..."
 fdisk -l
 sleep 3
