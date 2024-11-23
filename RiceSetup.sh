@@ -65,17 +65,40 @@ case "$GPU" in
 esac
 
 # Install core system utilities and packages
-print_step "Installing core utilities"
-sudo pacman -S xdg-user-dirs alsa-utils alsa-plugins pipewire pipewire-alsa pipewire-pulse wireplumber bluez bluez-utils blueman \
-openssh iw wpa_supplicant ntp noto-fonts ttf-opensans ttf-firacode-nerd ttf-jetbrains-mono noto-fonts-emoji \
-alacritty neovim wofi waybar imv firefox hyprshot vlc zathura zathura-pdf-mupdf gammastep rust lua luarocks \
-python python-pip zig icarus-verilog gtkwave tldr fzf wget curl tar unzip gzip htop neofetch --noconfirm
+print_step "Installing system utilities and core tools"
+sudo pacman -S xdg-user-dirs alsa-utils alsa-plugins pipewire pipewire-alsa pipewire-pulse wireplumber \
+openssh iw wpa_supplicant ntp tldr fzf wget curl tar unzip gzip htop neofetch --noconfirm
 
-# Enable necessary services
-print_step "Enabling necessary services"
+# Network and Bluetooth
+sudo pacman -S bluez bluez-utils blueman --noconfirm
 sudo systemctl enable bluetooth
 sudo systemctl enable sshd
 sudo systemctl enable dhcpcd
+
+# Fonts
+print_step "Installing fonts"
+sudo pacman -S noto-fonts ttf-opensans ttf-firacode-nerd ttf-jetbrains-mono noto-fonts-emoji --noconfirm
+
+# Ricing:
+print_step "Installing GUI and ricing dependencies"
+sudo pacman -S alacritty neovim wofi waybar imv firefox gammastep --noconfirm
+yay -S hyprshot wlogout swaylock-effects-git --noconfirm
+
+# Media
+print_step "Installing media and productivity tools"
+sudo pacman -S vlc zathura zathura-pdf-mupdf --noconfirm
+
+# Programming
+print_step "Installing programming and development tools"
+sudo pacman -S rust lua luarocks python python-pip zig --noconfirm
+
+# Digital Hardware/Simulation
+print_step "Installing digital hardware and simulation tools"
+sudo pacman -S gtkwave --noconfirm
+yay -S icarus-verilog --noconfirm
+
+# Enable necessary services
+print_step "Enabling necessary services"
 sudo systemctl enable fstrim.timer
 sudo systemctl enable ntpd
 timedatectl set-ntp true
