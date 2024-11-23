@@ -124,22 +124,11 @@ mkinitcpio -P
 echo root:root | chpasswd
 EOF
 
-# Add a new user
-echo "Adding a new user..."
-read -p "Enter a username: " USERNAME
-arch-chroot /mnt <<EOF
-useradd -m -G wheel,audio,video,storage $USERNAME
-echo "$USERNAME:$USERNAME" | chpasswd
-EDITOR=nvim visudo <<END
-%sudo ALL=(ALL) NOPASSWD: ALL
-END
-EOF
-
 # Clone ricing repository as the new user
 echo "Cloning ricing repository..."
 arch-chroot /mnt <<EOF
 sudo -u $USERNAME bash <<END
-git clone $REPO_URL /home/$USERNAME/OmarRice
+git clone $REPO_URL /home/OmarRice
 END
 EOF
 
