@@ -9,7 +9,12 @@ print_step() {
 }
 
 print_step "Testing internet connection"
-ping -c 4 8.8.8.8
+if ping -c 4 8.8.8.8; then
+    echo "Internet connection is working."
+else
+    echo "Internet connection failed. Please check your network."
+    exit 1
+fi
 
 print_step "Updating system packages"
 pacman -Syu --noconfirm sudo
@@ -17,15 +22,24 @@ pacman -Syu --noconfirm sudo
 # Add a new user
 print_step "Adding a new user"
 read -p "Enter new username: " USERNAME
-useradd -m -g users -G wheel,storage,power,video,audio,input "$USERNAME"
+useradd -m -G wheel,users,storage,power,video,audio,input "$USERNAME"
 passwd "$USERNAME"
+
+# Grant sudo privileges by configuring the sudoers file
+print_step "Granting sudo access to the new user"
+sed -i 's/^# %wheel ALL=(ALL) ALL/%wheel ALL=(ALL) ALL/' /etc/sudoers
 
 print_step "Switching to the new user"
 su - "$USERNAME" <<'EOF'
+    echo "Setting up user environment..."
+
+    # Update system and install Go and xdg-user-dirs
+    echo "Updating system and installing Go and xdg-user-dirs"
+    sudo pacman -Syu go xdg-user-dirs --noconfirm
+
     # Set up XDG user directories
-    echo "Setting up XDG user directories"
+    echo "Configuring XDG user directories"
     mkdir -p "$HOME/.config" "$HOME/Wallpapers"
-    sudo pacman -S xdg-user-dirs --noconfirm
     xdg-user-dirs-update
 
     # Install yay (AUR helper)
@@ -35,6 +49,8 @@ su - "$USERNAME" <<'EOF'
     git clone https://aur.archlinux.org/yay.git
     cd yay
     makepkg -si --noconfirm
+
+    echo "User environment setup complete."
 EOF
 
 # Audio and Bluetooth setup
