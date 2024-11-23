@@ -27,7 +27,7 @@ passwd "$USERNAME"
 
 # Grant sudo privileges by configuring the sudoers file
 print_step "Granting sudo access to the new user"
-sed -i 's/^# %wheel ALL=(ALL) ALL/%wheel ALL=(ALL) ALL/' /etc/sudoers
+echo "%wheel ALL=(ALL) ALL" | sudo EDITOR='tee -a' visudo
 
 print_step "Switching to the new user"
 su - "$USERNAME" <<'EOF'
@@ -35,7 +35,7 @@ su - "$USERNAME" <<'EOF'
 
     # Update system and install Go and xdg-user-dirs
     echo "Updating system and installing Go and xdg-user-dirs"
-    sudo pacman -Syu go xdg-user-dirs --noconfirm
+    sudo pacman -S go xdg-user-dirs --noconfirm
 
     # Set up XDG user directories
     echo "Configuring XDG user directories"
