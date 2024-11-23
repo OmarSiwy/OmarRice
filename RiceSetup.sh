@@ -8,20 +8,6 @@ print_step() {
     echo "------------------------------------------------------------"
 }
 
-# Ensure network connectivity
-print_step "Enabling and starting NetworkManager"
-systemctl start NetworkManager
-systemctl enable NetworkManager
-
-print_step "Listing available WiFi networks"
-nmcli device wifi list
-
-read -p "Enter WiFi SSID: " SSID
-read -s -p "Enter WiFi Password: " PASSWORD
-echo
-print_step "Connecting to WiFi"
-nmcli device wifi connect "$SSID" password "$PASSWORD"
-
 print_step "Testing internet connection"
 ping -c 4 8.8.8.8
 
@@ -35,7 +21,7 @@ useradd -m -g users -G wheel,storage,power,video,audio,input "$USERNAME"
 passwd "$USERNAME"
 
 print_step "Granting sudo access to the new user"
-EDITOR=nvim visudo
+sed -i 's/^# %wheel ALL=(ALL) NOPASSWD: ALL/%wheel ALL=(ALL) NOPASSWD: ALL/' /etc/sudoers
 
 print_step "Switching to the new user"
 su "$USERNAME"
