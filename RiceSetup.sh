@@ -8,6 +8,15 @@ print_step() {
     echo "------------------------------------------------------------"
 }
 
+# Cache sudo credentials
+print_step "Caching sudo credentials"
+sudo -v
+while true; do
+    sudo -n true
+    sleep 60
+    kill -0 "$$" || exit
+done 2>/dev/null &
+
 print_step "Testing internet connection"
 if ping -c 4 8.8.8.8; then
     echo "Internet connection is working."
@@ -27,31 +36,31 @@ passwd "$USERNAME"
 
 # Grant sudo privileges by configuring the sudoers file
 print_step "Granting sudo access to the new user"
-echo "%wheel ALL=(ALL) ALL" | sudo EDITOR='tee -a' visudo
+if ! grep -q "^%wheel ALL=(ALL) ALL" /etc/sudoers; then
+    echo "%wheel ALL=(ALL) ALL" | sudo EDITOR='tee -a' visudo
+fi
 
 print_step "Switching to the new user"
-su - "$USERNAME" <<'EOF'
-    echo "Setting up user environment..."
+if [ "$(whoami)" != "$USERNAME" ]; then
+    print_step "Switching to the new user"
+    su - "$USERNAME" -c "bash $0"
+    exit 0
+fi
 
-    # Update system and install Go and xdg-user-dirs
-    echo "Updating system and installing Go and xdg-user-dirs"
-    sudo pacman -S go xdg-user-dirs --noconfirm
+# Update system and install Go and xdg-user-dirs
+echo "Updating system and installing Go and xdg-user-dirs"
+sudo pacman -S xdg-user-dirs --noconfirm
+echo "Configuring XDG user directories"
+mkdir -p "$HOME/.config" "$HOME/Wallpapers"
+xdg-user-dirs-update
+echo "Installing yay"
+cd "$HOME" && mkdir -p aur
+cd aur
+git clone https://aur.archlinux.org/yay.git
+cd yay
+makepkg -si --noconfirm
 
-    # Set up XDG user directories
-    echo "Configuring XDG user directories"
-    mkdir -p "$HOME/.config" "$HOME/Wallpapers"
-    xdg-user-dirs-update
-
-    # Install yay (AUR helper)
-    echo "Installing yay"
-    cd "$HOME" && mkdir -p aur
-    cd aur
-    git clone https://aur.archlinux.org/yay.git
-    cd yay
-    makepkg -si --noconfirm
-
-    echo "User environment setup complete."
-EOF
+echo "User environment setup complete."
 
 # Audio and Bluetooth setup
 print_step "Installing audio utilities"
@@ -70,8 +79,10 @@ sudo systemctl enable dhcpcd
 
 # Pacman configuration
 print_step "Enhancing pacman settings"
-sudo nvim /etc/pacman.conf
-echo "Uncomment 'Color' and add 'ILoveCandy' below it."
+sudo sed -i 's/^#Color/Color/' /etc/pacman.conf
+if ! grep -q "ILoveCandy" /etc/pacman.conf; then
+    sudo sed -i '/^Color/a ILoveCandy' /etc/pacman.conf
+fi
 
 # Filesystem optimization
 print_step "Enabling SSD TRIM"
