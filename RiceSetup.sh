@@ -33,18 +33,22 @@ print_step "User Creation"
 read -p "Do you want to create a new user? (y/n): " CREATE_USER
 
 if [[ "$CREATE_USER" =~ ^[Yy]$ ]]; then
-    print_step "Adding a new user"
-    read -p "Enter new username: " USERNAME
-    sudo useradd -m -G wheel,users,storage,power,video,audio,input "$USERNAME"
-    sudo passwd "$USERNAME"
+  print_step "Adding a new user"
+  read -p "Enter new username: " USERNAME
+  sudo useradd -m -G wheel,users,storage,power,video,audio,input "$USERNAME"
+  sudo passwd "$USERNAME"
 
-    # Grant sudo privileges by configuring the sudoers file
-    print_step "Granting sudo access to the new user"
-    if ! grep -q "^%wheel ALL=(ALL) ALL" /etc/sudoers; then
-        echo "%wheel ALL=(ALL) ALL" | sudo EDITOR='tee -a' visudo
-    fi
+  # Save the last username to a file
+  echo "$USERNAME" | sudo tee /var/log/last_username > /dev/null
+
+  # Grant sudo privileges by configuring the sudoers file
+  print_step "Granting sudo access to the new user"
+  if ! grep -q "^%wheel ALL=(ALL) ALL" /etc/sudoers; then
+    echo "%wheel ALL=(ALL) ALL" | sudo EDITOR='tee -a' visudo
+  fi
 else
-    print_step "Skipping user creation."
+  USERNAME=$(cat /var/log/last_username)
+  print_step "Skipping user creation."
 fi
 
 # System-wide installations (run as root)
