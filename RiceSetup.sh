@@ -106,7 +106,7 @@ sudo pacman -S vlc zathura zathura-pdf-mupdf --noconfirm
 # Programming
 print_step "Installing programming and development tools"
 sudo pacman -S rust lua luarocks python python-pip zig --noconfirm
-sudo pacman -S fd ripgrep bat eza tree-sitter tree-sitter-cli --noconfirm
+sudo pacman -S fd ripgrep bat eza tree-sitter tree-sitter-cli bash-completion --noconfirm
 
 # Digital Hardware/Simulation
 print_step "Installing digital hardware and simulation tools"
@@ -161,6 +161,9 @@ sudo -u "$USERNAME" bash <<EOF
   cp -r .wallpapers "\$HOME/"
   cp -r .bashrc "\$HOME/"
   cp -r .XResources "\$HOME/"
+
+  # BASH SETUP
+  git clone https://github.com/rcaloras/bash-preexec.git ~/.bash-preexec
 EOF
 
 # Final message and optional user switch

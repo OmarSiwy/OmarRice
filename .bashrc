@@ -34,9 +34,9 @@ if [ -f /usr/share/bash-completion/bash_completion ]; then
     . /usr/share/bash-completion/bash_completion
 fi
 
-# Syntax highlighting (Bash equivalent using `bash-preexec`)
-if [ -f /usr/share/bash-preexec/bash-preexec.sh ]; then
-    . /usr/share/bash-preexec/bash-preexec.sh
+# Syntax highlighting
+if [ -f "$HOME/.bash-preexec/bash-preexec.sh" ]; then
+    . "$HOME/.bash-preexec/bash-preexec.sh"
 fi
 
 # Prompt customization
