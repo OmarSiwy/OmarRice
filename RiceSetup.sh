@@ -103,10 +103,13 @@ timedatectl set-ntp true
 
 # Enhance pacman settings
 print_step "Enhancing pacman settings"
-sudo sed -i 's/^#Color/Color/' /etc/pacman.conf
-if ! grep -q "ILoveCandy" /etc/pacman.conf; then
-    sudo sed -i '/^Color/a ILoveCandy' /etc/pacman.conf
-fi
+sudo ed -s /etc/pacman.conf <<EOF
+g/^#Color/s//#Color/
+g/^Color/a
+ILoveCandy
+.
+wq
+EOF
 
 # User-specific setup
 print_step "Setting up user-specific environment for $USERNAME"
@@ -131,8 +134,8 @@ sudo -u "$USERNAME" bash <<'EOF'
 
   # Apply user-specific configurations
   echo "Copying user-specific configurations"
-  cp -r /root/.config "$HOME/.config"
-  cp -r /root/.wallpapers "$HOME/Wallpapers"
+  sudo cp -r /root/.config "$HOME/.config"
+  sudo cp -r /root/.wallpapers "$HOME/Wallpapers"
 EOF
 
 # Final message and optional user switch
