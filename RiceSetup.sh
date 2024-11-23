@@ -134,7 +134,7 @@ echo "$SERVICE_CONTENT" > "$SERVICE_FILE"
 
 # User-specific setup
 print_step "Setting up user-specific environment for $USERNAME"
-sudo -u "$USERNAME" <<EOF
+sudo -u "$USERNAME" bash <<EOF
   # Create user directories
   echo "Configuring XDG user directories"
   mkdir -p "\$HOME/.config" "\$HOME/Wallpapers"
