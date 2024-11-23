@@ -20,25 +20,22 @@ read -p "Enter new username: " USERNAME
 useradd -m -g users -G wheel,storage,power,video,audio,input "$USERNAME"
 passwd "$USERNAME"
 
-print_step "Granting sudo access to the new user"
-sed -i 's/^# %wheel ALL=(ALL) NOPASSWD: ALL/%wheel ALL=(ALL) NOPASSWD: ALL/' /etc/sudoers
-
 print_step "Switching to the new user"
-su - "$USERNAME" -c "
+su - "$USERNAME" <<'EOF'
     # Set up XDG user directories
-    mkdir -p \$HOME/.config \$HOME/Wallpapers
-    echo 'Setting up XDG user directories'
+    echo "Setting up XDG user directories"
+    mkdir -p "$HOME/.config" "$HOME/Wallpapers"
     sudo pacman -S xdg-user-dirs --noconfirm
     xdg-user-dirs-update
 
     # Install yay (AUR helper)
-    echo 'Installing yay'
-    cd \$HOME && mkdir -p aur
+    echo "Installing yay"
+    cd "$HOME" && mkdir -p aur
     cd aur
     git clone https://aur.archlinux.org/yay.git
     cd yay
     makepkg -si --noconfirm
-"
+EOF
 
 # Audio and Bluetooth setup
 print_step "Installing audio utilities"
