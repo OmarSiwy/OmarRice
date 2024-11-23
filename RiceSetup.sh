@@ -82,7 +82,6 @@ sudo pacman -S noto-fonts ttf-opensans ttf-firacode-nerd ttf-jetbrains-mono noto
 # Ricing:
 print_step "Installing GUI and ricing dependencies"
 sudo pacman -S alacritty neovim wofi waybar imv firefox gammastep --noconfirm
-yay -S hyprshot wlogout swaylock-effects-git --noconfirm
 
 # Media
 print_step "Installing media and productivity tools"
@@ -95,7 +94,6 @@ sudo pacman -S rust lua luarocks python python-pip zig --noconfirm
 # Digital Hardware/Simulation
 print_step "Installing digital hardware and simulation tools"
 sudo pacman -S gtkwave --noconfirm
-yay -S icarus-verilog --noconfirm
 
 # Enable necessary services
 print_step "Enabling necessary services"
@@ -114,26 +112,27 @@ fi
 print_step "Setting up user-specific environment for $USERNAME"
 
 sudo -u "$USERNAME" bash <<'EOF'
-    # Create user directories
-    echo "Configuring XDG user directories"
-    mkdir -p "$HOME/.config" "$HOME/Wallpapers"
-    xdg-user-dirs-update
+  # Install Yay packages
+  yay -S hyprshot wlogout swaylock-effects-git pfetch --noconfirm
+  yay -S icarus-verilog --noconfirm
 
-    # Install yay (AUR helper)
-    echo "Installing yay"
-    cd "$HOME" && mkdir -p aur
-    cd aur
-    git clone https://aur.archlinux.org/yay.git
-    cd yay
-    makepkg -si --noconfirm
+  # Create user directories
+  echo "Configuring XDG user directories"
+  mkdir -p "$HOME/.config" "$HOME/Wallpapers"
+  xdg-user-dirs-update
 
-    # Apply user-specific configurations
-    echo "Copying user-specific configurations"
-    cp -r /root/.config "$HOME/.config"
-    cp -r /root/.wallpapers "$HOME/Wallpapers"
+  # Install yay (AUR helper)
+  echo "Installing yay"
+  cd "$HOME" && mkdir -p aur
+  cd aur
+  git clone https://aur.archlinux.org/yay.git
+  cd yay
+  makepkg -si --noconfirm
 
-    # Install additional AUR packages
-    yay -S wlogout swaylock-effects-git pfetch --noconfirm
+  # Apply user-specific configurations
+  echo "Copying user-specific configurations"
+  cp -r /root/.config "$HOME/.config"
+  cp -r /root/.wallpapers "$HOME/Wallpapers"
 EOF
 
 # Final message and optional user switch
