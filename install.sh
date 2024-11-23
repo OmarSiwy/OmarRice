@@ -124,14 +124,6 @@ mkinitcpio -P
 echo root:root | chpasswd
 EOF
 
-# Clone ricing repository as the new user
-echo "Cloning ricing repository..."
-arch-chroot /mnt <<EOF
-sudo -u $USERNAME bash <<END
-git clone $REPO_URL /home/OmarRice
-END
-EOF
-
 # Bootloader installation
 echo "Installing GRUB bootloader..."
 if [ "$BOOT_MODE" == "UEFI" ]; then
