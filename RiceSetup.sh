@@ -134,10 +134,7 @@ echo "$SERVICE_CONTENT" > "$SERVICE_FILE"
 
 # User-specific setup
 print_step "Setting up user-specific environment for $USERNAME"
-runuser -l "$USERNAME" <<EOF
-  export HOME="/home/$USERNAME"
-  export USER="$USERNAME"
-
+sudo -u "$USERNAME" <<EOF
   # Create user directories
   echo "Configuring XDG user directories"
   mkdir -p "\$HOME/.config" "\$HOME/Wallpapers"
@@ -156,8 +153,7 @@ runuser -l "$USERNAME" <<EOF
   makepkg -si --noconfirm
 
   # Install Yay packages
-  yay -S hyprshot wlogout swaylock-effects-git pfetch --noconfirm
-  yay -S iverilog --noconfirm
+  yay -S hyprshot wlogout swaylock-effects-git pfetch iverilog --noconfirm
 
   # Apply user-specific configurations
   echo "Moving user-specific configurations"
