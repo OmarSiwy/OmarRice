@@ -104,8 +104,10 @@ timedatectl set-ntp true
 
 # Setup Ranger Deviicons
 print_step "Setting up Ranger Devicons"
-git clone https://github.com/alexanderjeurissen/ranger_devicons.git ~/.config/ranger/plugins/ranger_devicons
-pip install --user pynvim
+if [ ! -d ~/.config/ranger/plugins ]; then
+  git clone https://github.com/alexanderjeurissen/ranger_devicons.git ~/.config/ranger/plugins/ranger_devicons
+fi
+sudo pacman -S python-pynvim
 
 print_step "Setting up Notifications"
 SERVICE_FILE="/usr/share/dbus-1/services/org.freedesktop.Notifications.service"
