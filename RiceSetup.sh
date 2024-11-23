@@ -157,10 +157,10 @@ sudo -u "$USERNAME" bash <<EOF
 
   # Apply user-specific configurations
   echo "Moving user-specific configurations"
-  cp -r .config "\$HOME/.config"
-  cp -r .wallpapers "\$HOME/.wallpapers"
-  cp -r .bashrc "\$HOME/.bashrc"
-  cp -r .XResources "\$HOME/.XResources"
+  cp -r .config "\$HOME/"
+  cp -r .wallpapers "\$HOME/"
+  cp -r .bashrc "\$HOME/"
+  cp -r .XResources "\$HOME/"
 EOF
 
 # Final message and optional user switch
