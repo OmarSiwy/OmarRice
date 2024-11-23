@@ -43,7 +43,14 @@ fi
 print_step "Switching to the new user"
 if [ "$(whoami)" != "$USERNAME" ]; then
     print_step "Switching to the new user"
-    su - "$USERNAME" -c "bash $0"
+    
+    SCRIPT_PATH=$(realpath "$0")
+    cp "$SCRIPT_PATH" /tmp/RiceSetup.sh
+    chmod +x /tmp/RiceSetup.sh
+
+    su - "$USERNAME" -c "bash /tmp/RiceSetup.sh"
+    
+    rm -f /tmp/RiceSetup.sh
     exit 0
 fi
 
