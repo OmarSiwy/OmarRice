@@ -140,15 +140,16 @@ runuser -l "$USERNAME" <<EOF
   makepkg -si --noconfirm
 
   # Install Yay packages
+  sudo pacman -S --needed base-devel hyprland hyperpaper swayidle python-pillow --noconfirm
   yay -S hyprshot wlogout swaylock-effects-git pfetch --noconfirm
   yay -S iverilog --noconfirm
 
   # Apply user-specific configurations
   echo "Moving user-specific configurations"
-  mv ./config "\$HOME/.config"
-  mv ./wallpapers "\$HOME/.wallpapers"
-  mv ./bashrc "\$HOME/.bashrc"
-  mv ./XResources "\$HOME/.XResources"
+  cp -r .config "\$HOME/.config"
+  cp -r .wallpapers "\$HOME/.wallpapers"
+  cp -r .bashrc "\$HOME/.bashrc"
+  cp -r .XResources "\$HOME/.XResources"
 EOF
 
 
