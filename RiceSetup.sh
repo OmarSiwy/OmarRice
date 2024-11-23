@@ -40,106 +40,84 @@ if ! grep -q "^%wheel ALL=(ALL) ALL" /etc/sudoers; then
     echo "%wheel ALL=(ALL) ALL" | sudo EDITOR='tee -a' visudo
 fi
 
-# Select GPU type as the new user (direct command approach)
-print_step "Switching to the new user for GPU selection and setup"
+# System-wide installations (run as root)
+print_step "Performing system-wide installations"
+
+# Install GPU drivers
 echo "Select your GPU type (intel/nvidia/amd):"
 read GPU
-echo $GPU
-
-su - "$USERNAME" -c "echo '$USERNAME' password cached for sudo; sudo -v"
-
 case "$GPU" in
     intel)
         print_step "Installing Intel GPU drivers"
-        su - "$USERNAME" -c "sudo pacman -S mesa intel-media-driver libva-intel-driver vulkan-intel --noconfirm"
+        sudo pacman -S mesa intel-media-driver libva-intel-driver vulkan-intel --noconfirm
         ;;
     nvidia)
         print_step "Installing NVIDIA GPU drivers"
-        su - "$USERNAME" -c "sudo pacman -S nvidia --noconfirm"
+        sudo pacman -S nvidia --noconfirm
         ;;
     amd)
         print_step "Installing AMD GPU drivers"
-        su - "$USERNAME" -c "sudo pacman -S mesa libva-mesa-driver vulkan-radeon --noconfirm"
+        sudo pacman -S mesa libva-mesa-driver vulkan-radeon --noconfirm
         ;;
     *)
         print_step "Invalid GPU type selected. Skipping GPU driver installation."
         ;;
 esac
 
-print_step "Switching to the new user and setting up environment"
-su - "$USERNAME" <<'EOF'
-  echo "Setting up user environment..."
+# Install core system utilities and packages
+print_step "Installing core utilities"
+sudo pacman -S xdg-user-dirs alsa-utils alsa-plugins pipewire pipewire-alsa pipewire-pulse wireplumber bluez bluez-utils blueman \
+openssh iw wpa_supplicant ntp noto-fonts ttf-opensans ttf-firacode-nerd ttf-jetbrains-mono noto-fonts-emoji \
+alacritty neovim wofi waybar imv firefox hyprshot vlc zathura zathura-pdf-mupdf gammastep rust lua luarocks \
+python python-pip zig icarus-verilog gtkwave tldr fzf wget curl tar unzip gzip htop neofetch --noconfirm
 
-  # Update system and install Go and xdg-user-dirs
-  echo "Updating system and installing Go and xdg-user-dirs"
-  sudo pacman -S xdg-user-dirs --noconfirm
-  mkdir -p "$HOME/.config" "$HOME/Wallpapers"
-  xdg-user-dirs-update
+# Enable necessary services
+print_step "Enabling necessary services"
+sudo systemctl enable bluetooth
+sudo systemctl enable sshd
+sudo systemctl enable dhcpcd
+sudo systemctl enable fstrim.timer
+sudo systemctl enable ntpd
+timedatectl set-ntp true
 
-  # Install yay (AUR helper)
-  echo "Installing yay"
-  cd "$HOME" && mkdir -p aur
-  cd aur
-  git clone https://aur.archlinux.org/yay.git
-  cd yay
-  makepkg -si --noconfirm
-
-  echo "User environment setup complete."
-
-  # Audio and Bluetooth setup
-  sudo pacman -S alsa-utils alsa-plugins --noconfirm
-  sudo pacman -S pipewire pipewire-alsa pipewire-pulse wireplumber --noconfirm
-  sudo pacman -S bluez bluez-utils blueman --noconfirm
-  sudo systemctl enable bluetooth
-
-  # Networking setup
-  sudo pacman -S openssh iw wpa_supplicant --noconfirm
-  sudo systemctl enable sshd
-  sudo systemctl enable dhcpcd
-
-  # Pacman configuration
-  sudo sed -i 's/^#Color/Color/' /etc/pacman.conf
-  if ! grep -q "ILoveCandy" /etc/pacman.conf; then
+# Enhance pacman settings
+print_step "Enhancing pacman settings"
+sudo sed -i 's/^#Color/Color/' /etc/pacman.conf
+if ! grep -q "ILoveCandy" /etc/pacman.conf; then
     sudo sed -i '/^Color/a ILoveCandy' /etc/pacman.conf
-  fi
+fi
 
-  # Filesystem optimization
-  sudo systemctl enable fstrim.timer
+# User-specific setup
+print_step "Setting up user-specific environment for $USERNAME"
 
-  # NTP setup
-  sudo pacman -S ntp --noconfirm
-  sudo systemctl enable ntpd
-  timedatectl set-ntp true
+sudo -u "$USERNAME" bash <<'EOF'
+    # Create user directories
+    echo "Configuring XDG user directories"
+    mkdir -p "$HOME/.config" "$HOME/Wallpapers"
+    xdg-user-dirs-update
 
-  # Dependencies for GUI and ricing
-  sudo pacman -S hyprland hyprpaper swayidle --noconfirm
-  yay -S wlogout swaylock-effects-git --noconfirm
+    # Install yay (AUR helper)
+    echo "Installing yay"
+    cd "$HOME" && mkdir -p aur
+    cd aur
+    git clone https://aur.archlinux.org/yay.git
+    cd yay
+    makepkg -si --noconfirm
 
-  # Install fonts
-  sudo pacman -S noto-fonts ttf-opensans ttf-firacode-nerd ttf-jetbrains-mono noto-fonts-emoji --noconfirm
+    # Apply user-specific configurations
+    echo "Copying user-specific configurations"
+    cp -r /root/.config "$HOME/.config"
+    cp -r /root/.wallpapers "$HOME/Wallpapers"
 
-  # Install essential applications
-  sudo pacman -S alacritty neovim wofi waybar imv firefox hyprshot vlc zathura zathura-pdf-mupdf gammastep --noconfirm
-
-  # Enable dark theme
-  gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
-  gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
-
-  # Programming tools
-  sudo pacman -S rust lua luarocks python python-pip zig --noconfirm
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-  source $HOME/.cargo/env
-
-  # Digital hardware utilities
-  sudo pacman -S icarus-verilog gtkwave --noconfirm
-
-  # CLI utilities
-  sudo pacman -S tldr fzf wget curl tar unzip gzip htop neofetch --noconfirm
-  yay -S pfetch --noconfirm
-
-  # Copy configuration files and wallpapers
-  cp -r .config "$HOME/.config"
-  cp -r .wallpapers "$HOME/Wallpapers"
-
-  echo "Setup complete for user $USER! Please reboot the system."
+    # Install additional AUR packages
+    yay -S wlogout swaylock-effects-git pfetch --noconfirm
 EOF
+
+# Final message and optional user switch
+print_step "Setup complete! You can now switch to the new user."
+read -p "Switch to $USERNAME now? (y/n): " SWITCH_USER
+if [[ "$SWITCH_USER" == "y" ]]; then
+    su - "$USERNAME"
+else
+    echo "You can switch to the new user anytime by running: su - $USERNAME"
+fi
