@@ -103,13 +103,17 @@ timedatectl set-ntp true
 
 # Enhance pacman settings
 print_step "Enhancing pacman settings"
-sudo ed -s /etc/pacman.conf <<EOF
-g/^#Color/s//#Color/
-g/^Color/a
-ILoveCandy
-.
-wq
-EOF
+sudo awk '{
+    if ($0 ~ /^#Color$/) {
+        print "Color"; next       # Uncomment the 'Color' line
+    }
+    if ($0 ~ /^Color$/ && !candy) {
+        print $0 "\nILoveCandy";  # Add 'ILoveCandy' after 'Color'
+        candy = 1
+        next
+    }
+    print
+}' /etc/pacman.conf | sudo tee /etc/pacman.conf >/dev/null
 
 # User-specific setup
 print_step "Setting up user-specific environment for $USERNAME"
