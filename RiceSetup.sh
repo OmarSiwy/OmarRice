@@ -88,6 +88,7 @@ sudo pacman -S noto-fonts ttf-opensans ttf-firacode-nerd ttf-jetbrains-mono noto
 
 # Ricing:
 print_step "Installing GUI and ricing dependencies"
+sudo pacman -S base-devel hyprland hyperpaper swayidle python-pillow --noconfirm
 sudo pacman -S alacritty neovim wofi waybar imv firefox gammastep lsd notification-daemon xdg-desktop-portal-gtk --noconfirm
 
 # Media
@@ -147,7 +148,6 @@ runuser -l "$USERNAME" <<EOF
   makepkg -si --noconfirm
 
   # Install Yay packages
-  sudo pacman -S --needed base-devel hyprland hyperpaper swayidle python-pillow --noconfirm
   yay -S hyprshot wlogout swaylock-effects-git pfetch --noconfirm
   yay -S iverilog --noconfirm
 
@@ -158,7 +158,6 @@ runuser -l "$USERNAME" <<EOF
   cp -r .bashrc "\$HOME/.bashrc"
   cp -r .XResources "\$HOME/.XResources"
 EOF
-
 
 # Final message and optional user switch
 print_step "Setup complete!"
