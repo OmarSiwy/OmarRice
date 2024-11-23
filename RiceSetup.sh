@@ -117,17 +117,24 @@ sudo awk '{
 
 # User-specific setup
 print_step "Setting up user-specific environment for $USERNAME"
-sudo -u "$USERNAME" bash <<'EOF'
+runuser -l "$USERNAME" <<EOF
+  export HOME="/home/$USERNAME"
+  export USER="$USERNAME"
+
   # Create user directories
   echo "Configuring XDG user directories"
-  mkdir -p "$HOME/.config" "$HOME/Wallpapers"
+  mkdir -p "\$HOME/.config" "\$HOME/Wallpapers"
   xdg-user-dirs-update
 
   # Install yay (AUR helper)
   echo "Installing yay"
-  cd "$HOME" && mkdir -p aur
+  cd "\$HOME" && mkdir -p aur
   cd aur
-  git clone https://aur.archlinux.org/yay.git
+  if [ ! -d yay ]; then
+    git clone https://aur.archlinux.org/yay.git
+  else
+    echo "Yay repository already exists. Skipping."
+  fi
   cd yay
   makepkg -si --noconfirm
 
@@ -135,12 +142,21 @@ sudo -u "$USERNAME" bash <<'EOF'
   yay -S hyprshot wlogout swaylock-effects-git pfetch --noconfirm
   yay -S iverilog --noconfirm
 
-
   # Apply user-specific configurations
-  echo "Copying user-specific configurations"
-  sudo cp -r /root/.config "$HOME/.config"
-  sudo cp -r /root/.wallpapers "$HOME/Wallpapers"
+  echo "Moving user-specific configurations"
+  if [ -d /root/.config ]; then
+    mv /root/.config "\$HOME/.config"
+  else
+    echo "No .config directory found in /root. Skipping."
+  fi
+
+  if [ -d /root/.wallpapers ]; then
+    mv /root/.wallpapers "\$HOME/Wallpapers"
+  else
+    echo "No .wallpapers directory found in /root. Skipping."
+  fi
 EOF
+
 
 # Final message and optional user switch
 print_step "Setup complete!"
