@@ -40,99 +40,106 @@ if ! grep -q "^%wheel ALL=(ALL) ALL" /etc/sudoers; then
     echo "%wheel ALL=(ALL) ALL" | sudo EDITOR='tee -a' visudo
 fi
 
-print_step "Switching to the new user and setting up environment"
-su - "$USERNAME" <<'EOF'
-    echo "Setting up user environment..."
-
-    # Update system and install Go and xdg-user-dirs
-    echo "Updating system and installing Go and xdg-user-dirs"
-    sudo pacman -S xdg-user-dirs --noconfirm
-    echo "Configuring XDG user directories"
-    mkdir -p "$HOME/.config" "$HOME/Wallpapers"
-    xdg-user-dirs-update
-    echo "Installing yay"
-    cd "$HOME" && mkdir -p aur
-    cd aur
-    git clone https://aur.archlinux.org/yay.git
-    cd yay
-    makepkg -si --noconfirm
-
-    echo "User environment setup complete."
-
-    # Audio and Bluetooth setup
-    sudo pacman -S alsa-utils alsa-plugins --noconfirm
-    sudo pacman -S pipewire pipewire-alsa pipewire-pulse wireplumber --noconfirm
-
-    # Bluetooth utilities
-    sudo pacman -S bluez bluez-utils blueman --noconfirm
-    sudo systemctl enable bluetooth
-
-    # Networking setup
-    sudo pacman -S openssh iw wpa_supplicant --noconfirm
-    sudo systemctl enable sshd
-    sudo systemctl enable dhcpcd
-
-    # Pacman configuration
-    sudo sed -i 's/^#Color/Color/' /etc/pacman.conf
-    if ! grep -q "ILoveCandy" /etc/pacman.conf; then
-        sudo sed -i '/^Color/a ILoveCandy' /etc/pacman.conf
-    fi
-
-    # Filesystem optimization
-    sudo systemctl enable fstrim.timer
-
-    # NTP setup
-    sudo pacman -S ntp --noconfirm
-    sudo systemctl enable ntpd
-    timedatectl set-ntp true
-
-    # Dependencies for GUI and ricing
-    sudo pacman -S hyprland hyprpaper swayidle --noconfirm
-    yay -S wlogout swaylock-effects-git --noconfirm
-
-    # Install graphics drivers
+# Select GPU type as the new user (direct command approach)
+print_step "Switching to the new user for GPU selection and setup"
+GPU=$(su - "$USERNAME" -c '
     echo "Select your GPU type (intel/nvidia/amd):"
     read GPU
-    case "$GPU" in
-        intel)
-            sudo pacman -S mesa intel-media-driver libva-intel-driver vulkan-intel --noconfirm
-            ;;
-        nvidia)
-            sudo pacman -S nvidia --noconfirm
-            ;;
-        amd)
-            sudo pacman -S mesa libva-mesa-driver vulkan-radeon --noconfirm
-            ;;
-        *)
-            echo "Invalid GPU type. Skipping graphics driver installation."
-            ;;
-    esac
+    echo $GPU
+')
 
-    # Install fonts
-    sudo pacman -S noto-fonts ttf-opensans ttf-firacode-nerd ttf-jetbrains-mono noto-fonts-emoji --noconfirm
+case "$GPU" in
+    intel)
+        print_step "Installing Intel GPU drivers"
+        su - "$USERNAME" -c "sudo pacman -S mesa intel-media-driver libva-intel-driver vulkan-intel --noconfirm"
+        ;;
+    nvidia)
+        print_step "Installing NVIDIA GPU drivers"
+        su - "$USERNAME" -c "sudo pacman -S nvidia --noconfirm"
+        ;;
+    amd)
+        print_step "Installing AMD GPU drivers"
+        su - "$USERNAME" -c "sudo pacman -S mesa libva-mesa-driver vulkan-radeon --noconfirm"
+        ;;
+    *)
+        print_step "Invalid GPU type selected. Skipping GPU driver installation."
+        ;;
+esac
 
-    # Install essential applications
-    sudo pacman -S alacritty neovim wofi waybar imv firefox hyprshot vlc zathura zathura-pdf-mupdf gammastep --noconfirm
+print_step "Switching to the new user and setting up environment"
+su - "$USERNAME" <<'EOF'
+  echo "Setting up user environment..."
 
-    # Enable dark theme
-    gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
-    gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
+  # Update system and install Go and xdg-user-dirs
+  echo "Updating system and installing Go and xdg-user-dirs"
+  sudo pacman -S xdg-user-dirs --noconfirm
+  mkdir -p "$HOME/.config" "$HOME/Wallpapers"
+  xdg-user-dirs-update
 
-    # Programming tools
-    sudo pacman -S rust lua luarocks python python-pip zig --noconfirm
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-    source $HOME/.cargo/env
+  # Install yay (AUR helper)
+  echo "Installing yay"
+  cd "$HOME" && mkdir -p aur
+  cd aur
+  git clone https://aur.archlinux.org/yay.git
+  cd yay
+  makepkg -si --noconfirm
 
-    # Digital hardware utilities
-    sudo pacman -S icarus-verilog gtkwave --noconfirm
+  echo "User environment setup complete."
 
-    # CLI utilities
-    sudo pacman -S tldr fzf wget curl tar unzip gzip htop neofetch --noconfirm
-    yay -S pfetch --noconfirm
+  # Audio and Bluetooth setup
+  sudo pacman -S alsa-utils alsa-plugins --noconfirm
+  sudo pacman -S pipewire pipewire-alsa pipewire-pulse wireplumber --noconfirm
+  sudo pacman -S bluez bluez-utils blueman --noconfirm
+  sudo systemctl enable bluetooth
 
-    # Copy configuration files and wallpapers
-    cp -r .config "$HOME/.config"
-    cp -r .wallpapers "$HOME/Wallpapers"
+  # Networking setup
+  sudo pacman -S openssh iw wpa_supplicant --noconfirm
+  sudo systemctl enable sshd
+  sudo systemctl enable dhcpcd
 
-    echo "Setup complete for user $USER! Please reboot the system."
+  # Pacman configuration
+  sudo sed -i 's/^#Color/Color/' /etc/pacman.conf
+  if ! grep -q "ILoveCandy" /etc/pacman.conf; then
+    sudo sed -i '/^Color/a ILoveCandy' /etc/pacman.conf
+  fi
+
+  # Filesystem optimization
+  sudo systemctl enable fstrim.timer
+
+  # NTP setup
+  sudo pacman -S ntp --noconfirm
+  sudo systemctl enable ntpd
+  timedatectl set-ntp true
+
+  # Dependencies for GUI and ricing
+  sudo pacman -S hyprland hyprpaper swayidle --noconfirm
+  yay -S wlogout swaylock-effects-git --noconfirm
+
+  # Install fonts
+  sudo pacman -S noto-fonts ttf-opensans ttf-firacode-nerd ttf-jetbrains-mono noto-fonts-emoji --noconfirm
+
+  # Install essential applications
+  sudo pacman -S alacritty neovim wofi waybar imv firefox hyprshot vlc zathura zathura-pdf-mupdf gammastep --noconfirm
+
+  # Enable dark theme
+  gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
+  gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
+
+  # Programming tools
+  sudo pacman -S rust lua luarocks python python-pip zig --noconfirm
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+  source $HOME/.cargo/env
+
+  # Digital hardware utilities
+  sudo pacman -S icarus-verilog gtkwave --noconfirm
+
+  # CLI utilities
+  sudo pacman -S tldr fzf wget curl tar unzip gzip htop neofetch --noconfirm
+  yay -S pfetch --noconfirm
+
+  # Copy configuration files and wallpapers
+  cp -r .config "$HOME/.config"
+  cp -r .wallpapers "$HOME/Wallpapers"
+
+  echo "Setup complete for user $USER! Please reboot the system."
 EOF
