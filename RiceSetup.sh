@@ -46,6 +46,8 @@ echo "Select your GPU type (intel/nvidia/amd):"
 read GPU
 echo $GPU
 
+su - "$USERNAME" -c "echo '$USERNAME' password cached for sudo; sudo -v"
+
 case "$GPU" in
     intel)
         print_step "Installing Intel GPU drivers"
