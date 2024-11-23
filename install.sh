@@ -144,5 +144,4 @@ fi
 echo "Unmounting and rebooting..."
 umount -R /mnt
 echo "Remove the installation disk and press Enter to reboot."
-read -p "Press Enter to reboot."
 reboot
