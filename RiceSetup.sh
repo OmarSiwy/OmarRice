@@ -107,7 +107,7 @@ print_step "Setting up Ranger Devicons"
 if [ ! -d ~/.config/ranger/plugins ]; then
   git clone https://github.com/alexanderjeurissen/ranger_devicons.git ~/.config/ranger/plugins/ranger_devicons
 fi
-sudo pacman -S python-pynvim
+sudo pacman -S python-pynvim --noconfirm
 
 print_step "Setting up Notifications"
 SERVICE_FILE="/usr/share/dbus-1/services/org.freedesktop.Notifications.service"
@@ -145,29 +145,10 @@ runuser -l "$USERNAME" <<EOF
 
   # Apply user-specific configurations
   echo "Moving user-specific configurations"
-  if [ -d /root/.config ]; then
-    mv /root/.config "\$HOME/.config"
-  else
-    echo "No .config directory found in /root. Skipping."
-  fi
-
-  if [ -d /root/.wallpapers ]; then
-    mv /root/.wallpapers "\$HOME/.wallpapers"
-  else
-    echo "No .wallpapers directory found in /root. Skipping."
-  fi
-
-  if [ -f /root/.bashrc ]; then
-    mv /root/.bashrc "\$HOME/.bashrc"
-  else
-    echo "No .basrc file found in /root. Skipping."
-  fi
-
-  if [ -f /root/.bashrc ]; then
-    mv /root/.bashrc "\$HOME/.bashrc"
-  else
-    echo "No .basrc file found in /root. Skipping."
-  fi
+  mv ./config "\$HOME/.config"
+  mv ./wallpapers "\$HOME/.wallpapers"
+  mv ./bashrc "\$HOME/.bashrc"
+  mv ./XResources "\$HOME/.XResources"
 EOF
 
 
