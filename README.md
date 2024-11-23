@@ -18,7 +18,7 @@ ping archlinux.org # Ensure this works
 ```
 
 ```Bash
-curl -LO https://github.com/OmarSiwy/OmarRice/blob/main/install.sh
+curl -LO https://raw.githubusercontent.com/OmarSiwy/OmarRice/main/install.sh
 chmod +x install.sh
 sudo ./install.sh
 ```
