@@ -81,7 +81,7 @@ sudo pacman -S noto-fonts ttf-opensans ttf-firacode-nerd ttf-jetbrains-mono noto
 
 # Ricing:
 print_step "Installing GUI and ricing dependencies"
-sudo pacman -S alacritty neovim wofi waybar imv firefox gammastep --noconfirm
+sudo pacman -S alacritty neovim wofi waybar imv firefox gammastep lsd --noconfirm
 
 # Media
 print_step "Installing media and productivity tools"
