@@ -210,7 +210,7 @@ sudo pacman -Syu kicad --noconfirm
 # LTSpice
 # ============================================================
 print_step "Installing LTSpice via yay"
-sudo -u "$USERNAME" "yay -S wine-ltspice --noconfirm"
+yay -S wine-ltspice
 
 # ============================================================
 # Digital Hardware CAD Installation
@@ -218,7 +218,7 @@ sudo -u "$USERNAME" "yay -S wine-ltspice --noconfirm"
 
 print_step "Installing digital hardware tools and dependencies"
 sudo pacman -S gtkwave --noconfirm
-sudo -u "$USERNAME" "yay -S iverilog --noconfirm"
+yay -S iverilog --noconfirm
 
 # ============================================================
 # Programming and Development Tools
