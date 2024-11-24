@@ -25,6 +25,14 @@ print_step() {
     echo "------------------------------------------------------------"
 }
 
+USERNAME=${SUDO_USER:-$USER}
+USE_HOME=/home/$USERNAME
+YAY_DIR="$USER_HOME/aur/yay"
+SNAP_DIR="$USER_HOME/aur/snap"
+
+chown -R "$USERNAME:$USERNAME" "$YAY_DIR"
+chown -R "$USERNAME:$USERNAME" "$SNAP_DIR"
+
 # ============================================================
 # Initial Setup
 # ============================================================
@@ -100,24 +108,20 @@ sudo pacman -S bluez bluez-utils blueman --noconfirm
 sudo systemctl enable bluetooth
 
 print_step "Setting up YAY Package Manager"
-USER_HOME=$(getent passwd "$USERNAME" | cut -d: -f6)
+USER_HOME=/home/$USERNAME
 
 # Set up YAY (AUR helper)
 echo "Installing yay"
-YAY_DIR="$USER_HOME/aur/yay"
 if [ ! -d "$YAY_DIR" ]; then
     git clone https://aur.archlinux.org/yay.git "$YAY_DIR"
 fi
-chown -R "$USERNAME:$USERNAME" "$YAY_DIR"
 cd "$YAY_DIR" && makepkg -si --noconfirm
 
 # Set up SNAP (AUR helper)
 echo "Installing Snapd"
-SNAP_DIR="$USER_HOME/aur/snap"
 if [ ! -d "$SNAP_DIR" ]; then
   git clone https://aur.archlinux.org/snapd.git "$SNAP_DIR"
 fi
-chown -R "$USERNAME:$USERNAME" "$SNAP_DIR"
 cd "$SNAP_DIR" && makepkg -si --noconfirm
 sudo systemctl enable --now snapd.socket
 sudo systemctl enable --now snapd.apparmor.service
