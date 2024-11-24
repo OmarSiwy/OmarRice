@@ -138,6 +138,7 @@ YAY_DIR="$USER_HOME/aur/yay"
 if [ ! -d "$YAY_DIR" ]; then
     git clone https://aur.archlinux.org/yay.git "$YAY_DIR"
 fi
+chown -R "$USERNAME:$USERNAME" "$YAY_DIR"
 sudo -u "$USERNAME" bash -c "cd '$YAY_DIR' && makepkg -si --noconfirm"
 
 # Set up SNAP (AUR helper)
@@ -146,6 +147,7 @@ SNAP_DIR="$USER_HOME/aur/snap"
 if [ ! -d snapd ]; then
   git clone https://aur.archlinux.org/snapd.git "$SNAP_DIR"
 fi
+chown -R "$USERNAME:$USERNAME" "$SNAP_DIR"
 sudo -u "$USERNAME" bash -c "cd '$SNAP_DIR' && makepkg -si --noconfirm"
 sudo systemctl enable --now snapd.socket
 sudo systemctl enable --now snapd.apparmor.service
