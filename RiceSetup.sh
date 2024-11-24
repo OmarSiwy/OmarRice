@@ -195,7 +195,7 @@ sudo -u "$USERNAME" bash -c "yay -S hyprshot wlogout swaylock-effects-git pfetch
 RANGER_PLUGINS_DIR="$USER_HOME/.config/ranger/plugins"
 mkdir -p "$(dirname "$RANGER_PLUGINS_DIR")"
 if [ ! -d "$RANGER_PLUGINS_DIR" ]; then
-    sudo -u "$USERNAME" "git clone https://github.com/alexanderjeurissen/ranger_devicons.git $RANGER_PLUGINS_DIR"
+    sudo -u "$USERNAME" bash -c "git clone https://github.com/alexanderjeurissen/ranger_devicons.git $RANGER_PLUGINS_DIR"
 fi
 
 sudo pacman -S python-pynvim --noconfirm
@@ -237,13 +237,13 @@ export WINEPREFIX=/home/$USERNAME/Altium
 export WINEARCH=win32
 
 print_step "Installing required components via Winetricks"
-sudo -u "$USERNAME" "WINEPREFIX=$WINEPREFIX winetricks gdiplus corefonts riched20 mdac28 msxml6 dotnet48" || {
+sudo -u "$USERNAME" bash -c "WINEPREFIX=$WINEPREFIX winetricks gdiplus corefonts riched20 mdac28 msxml6 dotnet48" || {
     echo "Winetricks failed. Please check the error and try again."
     exit 1
 }
 
 print_step "Opening Wine Configuration (winecfg)"
-sudo -u "$USERNAME" "WINEPREFIX=$WINEPREFIX winecfg"
+sudo -u "$USERNAME" bash -c "WINEPREFIX=$WINEPREFIX winecfg"
 
 print_step "Installing Altium Designer"
 echo "Please provide your AltiumLive credentials."
@@ -257,7 +257,7 @@ if [ ! -f "$ALTIUM_SETUP" ]; then
     exit 1
 fi
 
-if ! sudo -u "$USERNAME" "WINEPREFIX=$WINEPREFIX wine $ALTIUM_SETUP \
+if ! sudo -u "$USERNAME" bash -c "WINEPREFIX=$WINEPREFIX wine $ALTIUM_SETUP \
   -Programs:\"C:\\Program Files\\Altium\\AD25\" \
   -Documents:\"C:\\Users\\Public\\Documents\\Altium\\AD25\" \
   -UI:None \
