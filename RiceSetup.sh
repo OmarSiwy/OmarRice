@@ -26,7 +26,7 @@ print_step() {
 }
 
 USERNAME=${SUDO_USER:-$USER}
-USE_HOME=/home/$USERNAME
+USER_HOME=/home/$USERNAME
 YAY_DIR="$USER_HOME/aur/yay"
 SNAP_DIR="$USER_HOME/aur/snap"
 
