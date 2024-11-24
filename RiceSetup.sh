@@ -204,7 +204,7 @@ sudo pacman -S lib32-libx11 lib32-alsa-lib lib32-libpulse lib32-fontconfig lib32
 # ============================================================
 
 export WINEPREFIX=/home/$USERNAME/Altium
-export WINEARCH=win32
+export WINEARCH=win64
 
 print_step "Installing required components via Winetricks"
 WINEPREFIX=$WINEPREFIX winetricks gdiplus corefonts riched20 mdac28 msxml6 dotnet48
