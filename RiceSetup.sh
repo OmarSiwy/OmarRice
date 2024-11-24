@@ -124,7 +124,7 @@ sudo systemctl enable ntpd
 timedatectl set-ntp true
 
 print_step "Network and Bluetooth"
-sudo pacman -S xdg-user-dirs alsa-utils alsa-plugins pipewire pipewire-alsa pipewire-pulse wireplumbe --noconfirm
+sudo pacman -S xdg-user-dirs alsa-utils alsa-plugins pipewire pipewire-alsa pipewire-pulse wireplumber --noconfirm
 sudo pacman -S bluez bluez-utils blueman --noconfirm
 sudo systemctl enable bluetooth
 
