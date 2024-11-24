@@ -100,7 +100,7 @@ sudo pacman -S bluez bluez-utils blueman --noconfirm
 sudo systemctl enable bluetooth
 
 print_step "Setting up YAY Package Manager"
-USER_HOME=$(eval echo ~$USERNAME)
+USER_HOME=$(getent passwd "$USERNAME" | cut -d: -f6)
 
 # Set up YAY (AUR helper)
 echo "Installing yay"
