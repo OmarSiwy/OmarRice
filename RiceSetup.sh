@@ -216,10 +216,7 @@ sudo pacman -S vlc zathura zathura-pdf-mupdf steam --noconfirm
 
 # Note Taking
 sudo pacman -S syncthing --noconfirm
-if ! sudo snap install obsidian --classic; then
-    echo "Failed to install Obsidian via Snap. Exiting."
-    exit 1
-fi
+su -u "$USERNAME" bash -c "sudo snap install obsidian --classic --noconfirm"
 
 # ============================================================
 # Analog Hardware CAD Installation
