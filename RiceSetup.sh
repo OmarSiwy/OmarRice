@@ -216,7 +216,7 @@ sudo pacman -S vlc zathura zathura-pdf-mupdf steam --noconfirm
 
 # Note Taking
 sudo pacman -S syncthing --noconfirm
-sudo -u "$USERNAME" bash -c "sudo snap install obsidian --classic --noconfirm"
+sudo -u "$USERNAME" bash -c "sudo snap install obsidian --classic"
 
 # ============================================================
 # Analog Hardware CAD Installation
