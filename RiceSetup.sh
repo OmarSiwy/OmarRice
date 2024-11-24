@@ -114,7 +114,7 @@ esac
 # ============================================================
 
 print_step "Installing core system utilities"
-sudo pacman -S openssh iw wpa_supplicant ntp tldr fzf wget curl tar unzip gzip htop neofetch --noconfirm
+sudo pacman -S openssh iw wpa_supplicant ntp tldr fzf wget curl tar unzip gzip htop neofetch cmake --noconfirm
 sudo systemctl enable sshd
 sudo systemctl enable dhcpcd
 
