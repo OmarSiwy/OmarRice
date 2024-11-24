@@ -163,7 +163,7 @@ sudo pacman -S noto-fonts ttf-opensans ttf-firacode-nerd ttf-jetbrains-mono noto
 print_step "Installing GUI and ricing dependencies"
 sudo pacman -S base-devel hyprland hyprpaper swayidle python-pillow --noconfirm
 sudo pacman -S alacritty neovim wofi waybar imv firefox gammastep lsd notification-daemon xdg-desktop-portal-gtk --noconfirm
-yay -S hyprshot wlogout swaylock-effects-git pfetch --noconfirm
+yay -S --noconfirm --needed hyprshot wlogout swaylock-effects-git pfetch --noconfirm
 
 RANGER_PLUGINS_DIR="$USER_HOME/.config/ranger/plugins"
 mkdir -p "$(dirname "$RANGER_PLUGINS_DIR")"
@@ -178,7 +178,7 @@ SERVICE_FILE="/usr/share/dbus-1/services/org.freedesktop.Notifications.service"
 SERVICE_CONTENT="[D-BUS Service]
 Name=org.freedesktop.Notifications
 Exec=/usr/lib/notification-daemon-1.0/notification-daemon"
-sudo echo "$SERVICE_CONTENT" > "$SERVICE_FILE"
+echo "$SERVICE_CONTENT" | sudo tee "$SERVICE_FILE" > /dev/null
 
 # ============================================================
 # Media and Productivity Tools
