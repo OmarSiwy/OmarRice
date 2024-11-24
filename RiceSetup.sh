@@ -138,26 +138,18 @@ YAY_DIR="$USER_HOME/aur/yay"
 if [ ! -d "$YAY_DIR" ]; then
     git clone https://aur.archlinux.org/yay.git "$YAY_DIR"
 fi
-chown -R "$USERNAME:$USERNAME" "$YAY_DIR"
-if ! su -c "cd $YAY_DIR && makepkg -si --noconfirm" "$USERNAME"; then
-    echo "Failed to install yay. Exiting."
-    exit 1
-fi
+su -c "cd $YAY_DIR && makepkg -si --noconfirm" "$USERNAME"
 
 # Set up SNAP (AUR helper)
 echo "Installing Snapd"
+SNAP_DIR="$USER_HOME/aur/snap"
 if [ ! -d snapd ]; then
-  git clone https://aur.archlinux.org/snapd.git
-else
-  echo "Snapd repository already exists. Skipping."
+  git clone https://aur.archlinux.org/snapd.git "$SNAP_DIR"
 fi
-cd snapd
-chown -R "$USERNAME:$USERNAME" . # Ensure ownership
-su -c "cd $PWD && makepkg -si --noconfirm" "$USERNAME"
+su -c "cd $SNAP_DIR && makepkg -si --noconfirm" "$USERNAME"
 sudo systemctl enable --now snapd.socket
 sudo systemctl enable --now snapd.apparmor.service
 sudo ln -s /var/lib/snapd/snap /snap
-cd ..
 
 echo "Configuring XDG user directories"
 mkdir -p "$USER_HOME/.config" "$USER_HOME/Wallpapers"
