@@ -188,7 +188,7 @@ sudo pacman -S noto-fonts ttf-opensans ttf-firacode-nerd ttf-jetbrains-mono noto
 print_step "Installing GUI and ricing dependencies"
 sudo pacman -S base-devel hyprland hyprpaper swayidle python-pillow --noconfirm
 sudo pacman -S alacritty neovim wofi waybar imv firefox gammastep lsd notification-daemon xdg-desktop-portal-gtk --noconfirm
-sudo -u "$USERNAME" "yay -S hyprshot wlogout swaylock-effects-git pfetch --noconfirm"
+sudo -u "$USERNAME" bash -c "yay -S hyprshot wlogout swaylock-effects-git pfetch --noconfirm"
 
 RANGER_PLUGINS_DIR="$USER_HOME/.config/ranger/plugins"
 mkdir -p "$(dirname "$RANGER_PLUGINS_DIR")"
