@@ -138,7 +138,7 @@ YAY_DIR="$USER_HOME/aur/yay"
 if [ ! -d "$YAY_DIR" ]; then
     git clone https://aur.archlinux.org/yay.git "$YAY_DIR"
 fi
-su -c "cd $YAY_DIR && makepkg -si --noconfirm" "$USERNAME"
+sudo -u "$USERNAME" bash -c "cd '$YAY_DIR' && makepkg -si --noconfirm"
 
 # Set up SNAP (AUR helper)
 echo "Installing Snapd"
@@ -146,7 +146,7 @@ SNAP_DIR="$USER_HOME/aur/snap"
 if [ ! -d snapd ]; then
   git clone https://aur.archlinux.org/snapd.git "$SNAP_DIR"
 fi
-su -c "cd $SNAP_DIR && makepkg -si --noconfirm" "$USERNAME"
+sudo -u "$USERNAME" bash -c "cd '$SNAP_DIR' && makepkg -si --noconfirm"
 sudo systemctl enable --now snapd.socket
 sudo systemctl enable --now snapd.apparmor.service
 sudo ln -s /var/lib/snapd/snap /snap
@@ -186,12 +186,12 @@ sudo pacman -S noto-fonts ttf-opensans ttf-firacode-nerd ttf-jetbrains-mono noto
 print_step "Installing GUI and ricing dependencies"
 sudo pacman -S base-devel hyprland hyprpaper swayidle python-pillow --noconfirm
 sudo pacman -S alacritty neovim wofi waybar imv firefox gammastep lsd notification-daemon xdg-desktop-portal-gtk --noconfirm
-su -c "yay -S hyprshot wlogout swaylock-effects-git pfetch --noconfirm" "$USERNAME"
+sudo -u "$USERNAME" "yay -S hyprshot wlogout swaylock-effects-git pfetch --noconfirm"
 
 RANGER_PLUGINS_DIR="$USER_HOME/.config/ranger/plugins"
 mkdir -p "$(dirname "$RANGER_PLUGINS_DIR")"
 if [ ! -d "$RANGER_PLUGINS_DIR" ]; then
-    su -c "git clone https://github.com/alexanderjeurissen/ranger_devicons.git $RANGER_PLUGINS_DIR" "$USERNAME"
+    sudo -u "$USERNAME" "git clone https://github.com/alexanderjeurissen/ranger_devicons.git $RANGER_PLUGINS_DIR"
 fi
 
 sudo pacman -S python-pynvim --noconfirm
@@ -233,13 +233,13 @@ export WINEPREFIX=/home/$USERNAME/Altium
 export WINEARCH=win32
 
 print_step "Installing required components via Winetricks"
-su -c "WINEPREFIX=$WINEPREFIX winetricks gdiplus corefonts riched20 mdac28 msxml6 dotnet48" "$USERNAME" || {
+sudo -u "$USERNAME" "WINEPREFIX=$WINEPREFIX winetricks gdiplus corefonts riched20 mdac28 msxml6 dotnet48" || {
     echo "Winetricks failed. Please check the error and try again."
     exit 1
 }
 
 print_step "Opening Wine Configuration (winecfg)"
-su -c "WINEPREFIX=$WINEPREFIX winecfg" "$USERNAME"
+sudo -u "$USERNAME" "WINEPREFIX=$WINEPREFIX winecfg"
 
 print_step "Installing Altium Designer"
 echo "Please provide your AltiumLive credentials."
@@ -253,14 +253,14 @@ if [ ! -f "$ALTIUM_SETUP" ]; then
     exit 1
 fi
 
-if ! su -c "WINEPREFIX=$WINEPREFIX wine $ALTIUM_SETUP \
+if ! sudo -u "$USERNAME" "WINEPREFIX=$WINEPREFIX wine $ALTIUM_SETUP \
   -Programs:\"C:\\Program Files\\Altium\\AD25\" \
   -Documents:\"C:\\Users\\Public\\Documents\\Altium\\AD25\" \
   -UI:None \
   -AutoInstall \
   -InstallAll \
   -User:\"$ALTIUM_EMAIL\" \
-  -Password:\"$ALTIUM_PASSWORD\"" "$USERNAME"; then
+  -Password:\"$ALTIUM_PASSWORD\""; then
     echo "Altium Designer installation failed. Exiting."
     exit 1
 fi
@@ -287,8 +287,6 @@ Categories=Development;Engineering;Electronics;
 EOF
 
 update-desktop-database "$USER_HOME/.local/share/applications"
-chown -R "$USERNAME:$USERNAME" "$USER_HOME/Applications" "$USER_HOME/.local/share/applications"
-
 cd /home/$USERNAME/Altium/drive_c/Program\ Files/Altium/AD25
 zip -r /home/$USERNAME/Applications/AltiumDesigner25.zip *
 
@@ -302,7 +300,7 @@ sudo pacman -Syu kicad --noconfirm
 # LTSpice
 # ============================================================
 print_step "Installing LTSpice via yay"
-su -c "yay -S wine-ltspice --noconfirm" "$USERNAME"
+sudo -u "$USERNAME" "yay -S wine-ltspice --noconfirm"
 
 # ============================================================
 # Digital Hardware CAD Installation
@@ -310,7 +308,7 @@ su -c "yay -S wine-ltspice --noconfirm" "$USERNAME"
 
 print_step "Installing digital hardware tools and dependencies"
 sudo pacman -S gtkwave --noconfirm
-su -c "yay -S iverilog --noconfirm" "$USERNAME"
+sudo -u "$USERNAME" "yay -S iverilog --noconfirm"
 
 # ============================================================
 # Programming and Development Tools
@@ -331,7 +329,6 @@ for dir in "${CONFIG_DIRS[@]}"; do
     cp -r "$dir" "$USER_HOME/"
   fi
 done
-chown -R "$USERNAME:$USERNAME" "$USER_HOME"
 
 # ============================================================
 # Finalization
