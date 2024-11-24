@@ -151,7 +151,9 @@ chown -R "$USERNAME:$USERNAME" "$SNAP_DIR"
 sudo -u "$USERNAME" bash -c "cd '$SNAP_DIR' && makepkg -si --noconfirm"
 sudo systemctl enable --now snapd.socket
 sudo systemctl enable --now snapd.apparmor.service
-sudo ln -s /var/lib/snapd/snap /snap
+if [ ! -L /snap ]; then
+    sudo ln -s /var/lib/snapd/snap /snap
+fi
 
 echo "Configuring XDG user directories"
 mkdir -p "$USER_HOME/.config" "$USER_HOME/Wallpapers"
