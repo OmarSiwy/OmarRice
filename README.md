@@ -40,6 +40,10 @@ sudo ./install.sh
 systemctl start NetworkManager
 systemctl enable NetworkManager
 
+# Create a new user
+sudo useradd -m -G wheel,users,storage,power,video,audio,input <USERNAME>
+sudo passwd <USERNAME>
+
 nmcli device wifi list
 nmcli device wifi connect <SSID> password <password>
 ping 8.8.8.8 # To make sure you are connected

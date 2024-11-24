@@ -58,36 +58,6 @@ print_step "Updating system packages"
 sudo pacman -Syu --noconfirm sudo
 
 # ============================================================
-# User Configuration
-# ============================================================
-
-print_step "User Creation"
-read -p "Do you want to create a new user? (y/n): " CREATE_USER
-
-if [[ "$CREATE_USER" =~ ^[Yy]$ ]]; then
-  print_step "Adding a new user"
-  read -p "Enter new username: " USERNAME
-  sudo useradd -m -G wheel,users,storage,power,video,audio,input "$USERNAME"
-  sudo passwd "$USERNAME"
-
-  # Save the last username to a file
-  echo "$USERNAME" | sudo tee /var/log/last_username > /dev/null
-
-  # Grant sudo privileges by configuring the sudoers file
-  print_step "Granting sudo access to the new user"
-  if ! grep -q "^%wheel ALL=(ALL) ALL" /etc/sudoers; then
-    echo "%wheel ALL=(ALL) ALL" | sudo EDITOR='tee -a' visudo
-  fi
-else
-  USERNAME=$(cat /var/log/last_username)
-  if [ -z "$USERNAME" ]; then
-    print_step "No user found. Exiting."
-    exit 1
-  fi
-  print_step "Skipping user creation."
-fi
-
-# ============================================================
 # Drivers Installation
 # ============================================================
 print_step "Select your GPU type (intel/nvidia/amd):"
@@ -139,7 +109,7 @@ if [ ! -d "$YAY_DIR" ]; then
     git clone https://aur.archlinux.org/yay.git "$YAY_DIR"
 fi
 chown -R "$USERNAME:$USERNAME" "$YAY_DIR"
-sudo -u "$USERNAME" bash -c "cd '$YAY_DIR' && makepkg -si --noconfirm"
+cd "$YAY_DIR" && makepkg -si --noconfirm
 
 # Set up SNAP (AUR helper)
 echo "Installing Snapd"
@@ -148,7 +118,7 @@ if [ ! -d "$SNAP_DIR" ]; then
   git clone https://aur.archlinux.org/snapd.git "$SNAP_DIR"
 fi
 chown -R "$USERNAME:$USERNAME" "$SNAP_DIR"
-sudo -u "$USERNAME" bash -c "cd '$SNAP_DIR' && makepkg -si --noconfirm"
+cd "$SNAP_DIR" && makepkg -si --noconfirm
 sudo systemctl enable --now snapd.socket
 sudo systemctl enable --now snapd.apparmor.service
 if [ ! -L /snap ]; then
@@ -165,7 +135,6 @@ if [ ! -d "$USER_HOME/.bash-preexec" ]; then
 else
   echo "BASH preexec already exists. Skipping."
 fi
-chown -R "$USERNAME:$USERNAME" "$USER_HOME/.config" "$USER_HOME/Wallpapers" "$USER_HOME/.bash-preexec"
 
 print_step "Checking and enabling [multilib] repository in /etc/pacman.conf"
 if ! grep -q "^\[multilib\]" /etc/pacman.conf; then
@@ -190,12 +159,12 @@ sudo pacman -S noto-fonts ttf-opensans ttf-firacode-nerd ttf-jetbrains-mono noto
 print_step "Installing GUI and ricing dependencies"
 sudo pacman -S base-devel hyprland hyprpaper swayidle python-pillow --noconfirm
 sudo pacman -S alacritty neovim wofi waybar imv firefox gammastep lsd notification-daemon xdg-desktop-portal-gtk --noconfirm
-sudo -u "$USERNAME" bash -c "yay -S hyprshot wlogout swaylock-effects-git pfetch --noconfirm"
+yay -S hyprshot wlogout swaylock-effects-git pfetch --noconfirm
 
 RANGER_PLUGINS_DIR="$USER_HOME/.config/ranger/plugins"
 mkdir -p "$(dirname "$RANGER_PLUGINS_DIR")"
 if [ ! -d "$RANGER_PLUGINS_DIR" ]; then
-    sudo -u "$USERNAME" bash -c "git clone https://github.com/alexanderjeurissen/ranger_devicons.git $RANGER_PLUGINS_DIR"
+    git clone https://github.com/alexanderjeurissen/ranger_devicons.git $RANGER_PLUGINS_DIR
 fi
 
 sudo pacman -S python-pynvim --noconfirm
@@ -216,7 +185,7 @@ sudo pacman -S vlc zathura zathura-pdf-mupdf steam --noconfirm
 
 # Note Taking
 sudo pacman -S syncthing --noconfirm
-sudo -u "$USERNAME" bash -c "sudo snap install obsidian --classic"
+sudo snap install obsidian --classic
 
 # ============================================================
 # Analog Hardware CAD Installation
@@ -234,13 +203,10 @@ export WINEPREFIX=/home/$USERNAME/Altium
 export WINEARCH=win32
 
 print_step "Installing required components via Winetricks"
-sudo -u "$USERNAME" bash -c "WINEPREFIX=$WINEPREFIX winetricks gdiplus corefonts riched20 mdac28 msxml6 dotnet48" || {
-    echo "Winetricks failed. Please check the error and try again."
-    exit 1
-}
+WINEPREFIX=$WINEPREFIX winetricks gdiplus corefonts riched20 mdac28 msxml6 dotnet48
 
 print_step "Opening Wine Configuration (winecfg)"
-sudo -u "$USERNAME" bash -c "WINEPREFIX=$WINEPREFIX winecfg"
+WINEPREFIX=$WINEPREFIX winecfg
 
 print_step "Installing Altium Designer"
 echo "Please provide your AltiumLive credentials."
@@ -248,20 +214,21 @@ read -p "Enter your AltiumLive email: " ALTIUM_EMAIL
 read -s -p "Enter your AltiumLive password (input hidden): " ALTIUM_PASSWORD
 echo
 
-ALTIUM_SETUP="/path/to/AltiumDesignerSetup_25_0_2.exe"
+ALTIUM_RELATIVE="./Altium/AltiumDesignerSetup_25_0_2.exe"
+ALTIUM_SETUP=$(realpath "$ALTIUM_RELATIVE")
 if [ ! -f "$ALTIUM_SETUP" ]; then
     echo "Altium Designer setup file not found at $ALTIUM_SETUP. Exiting."
     exit 1
 fi
 
-if ! sudo -u "$USERNAME" bash -c "WINEPREFIX=$WINEPREFIX wine $ALTIUM_SETUP \
+if ! WINEPREFIX=$WINEPREFIX wine $ALTIUM_SETUP \
   -Programs:\"C:\\Program Files\\Altium\\AD25\" \
   -Documents:\"C:\\Users\\Public\\Documents\\Altium\\AD25\" \
   -UI:None \
   -AutoInstall \
   -InstallAll \
   -User:\"$ALTIUM_EMAIL\" \
-  -Password:\"$ALTIUM_PASSWORD\""; then
+  -Password:\"$ALTIUM_PASSWORD\"; then
     echo "Altium Designer installation failed. Exiting."
     exit 1
 fi
@@ -334,8 +301,7 @@ done
 # ============================================================
 # Finalization
 # ============================================================
-
 print_step "Setup complete!"
 print_step "Only thing missing: git config and download wallpaper engine on steam"
-su - "$USERNAME"
 sudo reboot
+
