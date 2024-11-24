@@ -33,9 +33,10 @@ print_step "Caching sudo credentials"
 sudo -v
 while true; do
     sudo -n true
-    sleep 120
+    sleep 300
     kill -0 "$$" || exit
 done 2>/dev/null &
+trap 'kill %1 2>/dev/null || true' EXIT
 
 # ============================================================
 # Network Check 
@@ -129,44 +130,46 @@ sudo pacman -S bluez bluez-utils blueman --noconfirm
 sudo systemctl enable bluetooth
 
 print_step "Setting up YAY Package Manager"
-sudo -u "$USERNAME" bash <<EOF
-  # Install yay (AUR helper)
-  echo "Installing yay"
-  cd "\$HOME" && mkdir -p aur
-  cd aur
-  if [ ! -d yay ]; then
-    git clone https://aur.archlinux.org/yay.git
-  else
-    echo "Yay repository already exists. Skipping."
-  fi
-  cd yay
-  makepkg -si --noconfirm
-  cd ..
+USER_HOME=$(eval echo ~$USERNAME)
 
-  # Install SNAP (AUR helper)
-  if [ ! -d snapd ]; then
-    git clone https://aur.archlinux.org/snapd.git
-  else
-    echo "Snapd repository already exists. Skipping."
-  fi
-  cd snapd
-  makepkg -si
-  sudo systemctl enable --now snapd.socket
-  sudo systemctl enable --now snapd.apparmor.service
-  sudo ln -s /var/lib/snapd/snap /snap
-  cd ..
-EOF
+# Set up YAY (AUR helper)
+echo "Installing yay"
+YAY_DIR="$USER_HOME/aur/yay"
+if [ ! -d "$YAY_DIR" ]; then
+    git clone https://aur.archlinux.org/yay.git "$YAY_DIR"
+fi
+chown -R "$USERNAME:$USERNAME" "$YAY_DIR"
+if ! su -c "cd $YAY_DIR && makepkg -si --noconfirm" "$USERNAME"; then
+    echo "Failed to install yay. Exiting."
+    exit 1
+fi
 
-print_step "Setting up BASH and Directories"
-sudo -u "$USERNAME" bash <<EOF
-  # Create user directories
-  echo "Configuring XDG user directories"
-  mkdir -p "\$HOME/.config" "\$HOME/Wallpapers"
-  xdg-user-dirs-update
+# Set up SNAP (AUR helper)
+echo "Installing Snapd"
+if [ ! -d snapd ]; then
+  git clone https://aur.archlinux.org/snapd.git
+else
+  echo "Snapd repository already exists. Skipping."
+fi
+cd snapd
+chown -R "$USERNAME:$USERNAME" . # Ensure ownership
+su -c "cd $PWD && makepkg -si --noconfirm" "$USERNAME"
+sudo systemctl enable --now snapd.socket
+sudo systemctl enable --now snapd.apparmor.service
+sudo ln -s /var/lib/snapd/snap /snap
+cd ..
 
-  # BASH SETUP
-  git clone https://github.com/rcaloras/bash-preexec.git ~/.bash-preexec
-EOF
+echo "Configuring XDG user directories"
+mkdir -p "$USER_HOME/.config" "$USER_HOME/Wallpapers"
+xdg-user-dirs-update --force
+
+echo "Setting up BASH preexec"
+if [ ! -d "$USER_HOME/.bash-preexec" ]; then
+  git clone https://github.com/rcaloras/bash-preexec.git "$USER_HOME/.bash-preexec"
+else
+  echo "BASH preexec already exists. Skipping."
+fi
+chown -R "$USERNAME:$USERNAME" "$USER_HOME/.config" "$USER_HOME/Wallpapers" "$USER_HOME/.bash-preexec"
 
 print_step "Checking and enabling [multilib] repository in /etc/pacman.conf"
 if ! grep -q "^\[multilib\]" /etc/pacman.conf; then
@@ -191,14 +194,14 @@ sudo pacman -S noto-fonts ttf-opensans ttf-firacode-nerd ttf-jetbrains-mono noto
 print_step "Installing GUI and ricing dependencies"
 sudo pacman -S base-devel hyprland hyprpaper swayidle python-pillow --noconfirm
 sudo pacman -S alacritty neovim wofi waybar imv firefox gammastep lsd notification-daemon xdg-desktop-portal-gtk --noconfirm
-sudo -u "$USERNAME" bash <<EOF
-  yay -S hyprshot wlogout swaylock-effects-git pfetch --noconfirm
-EOF
+su -c "yay -S hyprshot wlogout swaylock-effects-git pfetch --noconfirm" "$USERNAME"
 
-print_step "Setting up Ranger Devicons"
-if [ ! -d ~/.config/ranger/plugins ]; then
-  git clone https://github.com/alexanderjeurissen/ranger_devicons.git ~/.config/ranger/plugins/ranger_devicons
+RANGER_PLUGINS_DIR="$USER_HOME/.config/ranger/plugins"
+mkdir -p "$(dirname "$RANGER_PLUGINS_DIR")"
+if [ ! -d "$RANGER_PLUGINS_DIR" ]; then
+    su -c "git clone https://github.com/alexanderjeurissen/ranger_devicons.git $RANGER_PLUGINS_DIR" "$USERNAME"
 fi
+
 sudo pacman -S python-pynvim --noconfirm
 
 print_step "Setting up Notifications"
@@ -217,7 +220,10 @@ sudo pacman -S vlc zathura zathura-pdf-mupdf steam --noconfirm
 
 # Note Taking
 sudo pacman -S syncthing --noconfirm
-sudo -u "$USERNAME" bash "sudo snap install obsidian --classic"
+if ! sudo snap install obsidian --classic; then
+    echo "Failed to install Obsidian via Snap. Exiting."
+    exit 1
+fi
 
 # ============================================================
 # Analog Hardware CAD Installation
@@ -235,13 +241,13 @@ export WINEPREFIX=/home/$USERNAME/Altium
 export WINEARCH=win32
 
 print_step "Installing required components via Winetricks"
-sudo -u "$USERNAME" WINEPREFIX=$WINEPREFIX winetricks gdiplus corefonts riched20 mdac28 msxml6 dotnet48 || {
+su -c "WINEPREFIX=$WINEPREFIX winetricks gdiplus corefonts riched20 mdac28 msxml6 dotnet48" "$USERNAME" || {
     echo "Winetricks failed. Please check the error and try again."
     exit 1
 }
 
 print_step "Opening Wine Configuration (winecfg)"
-sudo -u "$USERNAME" WINEPREFIX=$WINEPREFIX winecfg
+su -c "WINEPREFIX=$WINEPREFIX winecfg" "$USERNAME"
 
 print_step "Installing Altium Designer"
 echo "Please provide your AltiumLive credentials."
@@ -249,30 +255,35 @@ read -p "Enter your AltiumLive email: " ALTIUM_EMAIL
 read -s -p "Enter your AltiumLive password (input hidden): " ALTIUM_PASSWORD
 echo
 
-sudo -u "$USERNAME" WINEPREFIX=$WINEPREFIX wine ./Altium/AltiumDesignerSetup_25_0_2.exe \
-  -Programs:"C:\\Program Files\\Altium\\AD25" \
-  -Documents:"C:\\Users\\Public\\Documents\\Altium\\AD25" \
+ALTIUM_SETUP="/path/to/AltiumDesignerSetup_25_0_2.exe"
+if [ ! -f "$ALTIUM_SETUP" ]; then
+    echo "Altium Designer setup file not found at $ALTIUM_SETUP. Exiting."
+    exit 1
+fi
+
+if ! su -c "WINEPREFIX=$WINEPREFIX wine $ALTIUM_SETUP \
+  -Programs:\"C:\\Program Files\\Altium\\AD25\" \
+  -Documents:\"C:\\Users\\Public\\Documents\\Altium\\AD25\" \
   -UI:None \
   -AutoInstall \
   -InstallAll \
-  -User:"$ALTIUM_EMAIL" \
-  -Password:"$ALTIUM_PASSWORD" || {
-    echo "Altium Designer installation failed. Please check the error and try again."
+  -User:\"$ALTIUM_EMAIL\" \
+  -Password:\"$ALTIUM_PASSWORD\"" "$USERNAME"; then
+    echo "Altium Designer installation failed. Exiting."
     exit 1
-}
+fi
 
 print_step "Packaging Altium Designer"
-sudo -u "$USERNAME" bash <<EOF
-mkdir -p ~/Applications
-cat <<LAUNCHER > ~/Applications/AltiumDesigner.sh
+mkdir -p "$USER_HOME/Applications"
+cat <<EOF > "$USER_HOME/Applications/AltiumDesigner.sh"
 #!/usr/bin/bash
 export WINEPREFIX=/home/$USERNAME/Altium
 wine /home/$USERNAME/Altium/drive_c/Program\ Files/Altium/AD25/DXP.EXE
-LAUNCHER
-chmod +x ~/Applications/AltiumDesigner.sh
+EOF
+chmod +x "$USER_HOME/Applications/AltiumDesigner.sh"
 
-mkdir -p ~/.local/share/applications
-cat <<DESKTOP > ~/.local/share/applications/AltiumDesigner.desktop
+mkdir -p "$USER_HOME/.local/share/applications"
+cat <<EOF > "$USER_HOME/.local/share/applications/AltiumDesigner.desktop"
 [Desktop Entry]
 Name=Altium Designer
 Comment=Run Altium Designer with Wine
@@ -281,13 +292,13 @@ Type=Application
 Terminal=false
 Icon=altium
 Categories=Development;Engineering;Electronics;
-DESKTOP
+EOF
 
-update-desktop-database ~/.local/share/applications
+update-desktop-database "$USER_HOME/.local/share/applications"
+chown -R "$USERNAME:$USERNAME" "$USER_HOME/Applications" "$USER_HOME/.local/share/applications"
 
 cd /home/$USERNAME/Altium/drive_c/Program\ Files/Altium/AD25
 zip -r /home/$USERNAME/Applications/AltiumDesigner25.zip *
-EOF
 
 # ============================================================
 # Kicad
@@ -299,9 +310,7 @@ sudo pacman -Syu kicad --noconfirm
 # LTSpice
 # ============================================================
 print_step "Installing LTSpice via yay"
-sudo -u "$USERNAME" bash <<EOF
-  yay -S wine-ltspice --noconfirm
-EOF
+su -c "yay -S wine-ltspice --noconfirm" "$USERNAME"
 
 # ============================================================
 # Digital Hardware CAD Installation
@@ -309,9 +318,7 @@ EOF
 
 print_step "Installing digital hardware tools and dependencies"
 sudo pacman -S gtkwave --noconfirm
-sudo -u "$USERNAME" bash <<EOF
-  yay -S iverilog --noconfirm
-EOF
+su -c "yay -S iverilog --noconfirm" "$USERNAME"
 
 # ============================================================
 # Programming and Development Tools
@@ -326,14 +333,13 @@ sudo pacman -S fd ripgrep bat eza tree-sitter tree-sitter-cli bash-completion --
 # ============================================================
 
 print_step "Setting up config files for $USERNAME"
-sudo -u "$USERNAME" bash <<EOF
-  # Apply user-specific configurations
-  echo "Moving user-specific configurations"
-  cp -r .config "\$HOME/"
-  cp -r .wallpapers "\$HOME/"
-  cp -r .bashrc "\$HOME/"
-  cp -r .XResources "\$HOME/"
-EOF
+CONFIG_DIRS=(.config .wallpapers .bashrc .XResources)
+for dir in "${CONFIG_DIRS[@]}"; do
+  if [ -d "$dir" ] || [ -f "$dir" ]; then
+    cp -r "$dir" "$USER_HOME/"
+  fi
+done
+chown -R "$USERNAME:$USERNAME" "$USER_HOME"
 
 # ============================================================
 # Finalization
