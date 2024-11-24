@@ -141,6 +141,20 @@ sudo -u "$USERNAME" bash <<EOF
   fi
   cd yay
   makepkg -si --noconfirm
+  cd ..
+
+  # Install SNAP (AUR helper)
+  if [ ! -d snapd ]; then
+    git clone https://aur.archlinux.org/snapd.git
+  else
+    echo "Snapd repository already exists. Skipping."
+  fi
+  cd snapd
+  makepkg -si
+  sudo systemctl enable --now snapd.socket
+  sudo systemctl enable --now snapd.apparmor.service
+  sudo ln -s /var/lib/snapd/snap /snap
+  cd ..
 EOF
 
 print_step "Setting up BASH and Directories"
@@ -203,15 +217,7 @@ sudo pacman -S vlc zathura zathura-pdf-mupdf steam --noconfirm
 
 # Note Taking
 sudo pacman -S syncthing --noconfirm
-sudo -u "$USERNAME" bash <<EOF
-  git clone https://aur.archlinux.org/snapd.git
-  cd snapd
-  makepkg -si
-  sudo systemctl enable --now snapd.socket
-  sudo systemctl enable --now snapd.apparmor.service
-  sudo ln -s /var/lib/snapd/snap /snap
-  sudo snap install obsidian --classic
-EOF
+sudo -u "$USERNAME" bash "sudo snap install obsidian --classic"
 
 # ============================================================
 # Analog Hardware CAD Installation
