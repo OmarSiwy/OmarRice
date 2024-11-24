@@ -43,7 +43,9 @@ systemctl enable NetworkManager
 # Create a new user
 sudo useradd -m -G wheel,users,storage,power,video,audio,input <USERNAME>
 sudo passwd <USERNAME>
+su - <USERNAME>
 
+# if wireless
 nmcli device wifi list
 nmcli device wifi connect <SSID> password <password>
 ping 8.8.8.8 # To make sure you are connected
@@ -51,6 +53,6 @@ ping 8.8.8.8 # To make sure you are connected
 git clone https://github.com/OmarSiwy/OmarRice
 cd OmarRice
 chmod +x RiceSetup.sh
-sudo ./RiceSetup.sh
+./RiceSetup.sh
 ```
 

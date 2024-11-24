@@ -32,7 +32,6 @@ SNAP_DIR="$USER_HOME/aur/snap"
 
 chown -R "$USERNAME:$USERNAME" "$YAY_DIR"
 chown -R "$USERNAME:$USERNAME" "$SNAP_DIR"
-print_step $YAY_DIR
 
 # ============================================================
 # Initial Setup
@@ -179,7 +178,7 @@ SERVICE_FILE="/usr/share/dbus-1/services/org.freedesktop.Notifications.service"
 SERVICE_CONTENT="[D-BUS Service]
 Name=org.freedesktop.Notifications
 Exec=/usr/lib/notification-daemon-1.0/notification-daemon"
-echo "$SERVICE_CONTENT" > "$SERVICE_FILE"
+sudo echo "$SERVICE_CONTENT" > "$SERVICE_FILE"
 
 # ============================================================
 # Media and Productivity Tools
