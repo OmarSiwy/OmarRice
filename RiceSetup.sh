@@ -144,7 +144,7 @@ sudo -u "$USERNAME" bash -c "cd '$YAY_DIR' && makepkg -si --noconfirm"
 # Set up SNAP (AUR helper)
 echo "Installing Snapd"
 SNAP_DIR="$USER_HOME/aur/snap"
-if [ ! -d snapd ]; then
+if [ ! -d "$SNAP_DIR" ]; then
   git clone https://aur.archlinux.org/snapd.git "$SNAP_DIR"
 fi
 chown -R "$USERNAME:$USERNAME" "$SNAP_DIR"
