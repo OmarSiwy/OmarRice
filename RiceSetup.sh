@@ -32,7 +32,7 @@ SNAP_DIR="$USER_HOME/aur/snap"
 
 chown -R "$USERNAME:$USERNAME" "$YAY_DIR"
 chown -R "$USERNAME:$USERNAME" "$SNAP_DIR"
-print_step YAY_DIR
+print_step $YAY_DIR
 
 # ============================================================
 # Initial Setup
