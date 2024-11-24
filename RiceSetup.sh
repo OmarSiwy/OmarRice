@@ -197,7 +197,6 @@ sudo snap install obsidian --classic
 
 print_step "Installing Wine and 32-bit libraries"
 sudo pacman -Syy wine wine-mono wine-gecko winetricks --noconfirm
-sudo pacman -S lib32-libx11 lib32-alsa-lib lib32-libpulse lib32-fontconfig lib32-mesa --noconfirm
 
 # ============================================================
 # Altium Designer installation
@@ -207,7 +206,14 @@ export WINEPREFIX=/home/$USERNAME/Altium
 export WINEARCH=win64
 
 print_step "Installing required components via Winetricks"
-WINEPREFIX=$WINEPREFIX winetricks gdiplus corefonts riched20 mdac28 msxml6 dotnet48
+WINEPREFIX=$WINEPREFIX winetricks -q \
+  gdiplus \
+  corefonts \
+  riched20 \
+  msxml6 \
+  dotnet48 \
+  vcrun2019 \
+  dxvk
 
 print_step "Opening Wine Configuration (winecfg)"
 WINEPREFIX=$WINEPREFIX winecfg
