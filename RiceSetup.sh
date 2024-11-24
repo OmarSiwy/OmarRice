@@ -195,78 +195,10 @@ sudo snap install obsidian --classic
 # Analog Hardware CAD Installation
 # ============================================================
 
-print_step "Installing Wine and 32-bit libraries"
+print_step "Installing Wine and 64-bit libraries"
 sudo pacman -Syy wine wine-mono wine-gecko winetricks --noconfirm
-
-# ============================================================
-# Altium Designer installation
-# ============================================================
-
 export WINEPREFIX=/home/$USERNAME/Altium
 export WINEARCH=win64
-
-print_step "Installing required components via Winetricks"
-WINEPREFIX=$WINEPREFIX winetricks -q \
-  gdiplus \
-  corefonts \
-  riched20 \
-  msxml6 \
-  dotnet48 \
-  vcrun2019 \
-  dxvk
-
-print_step "Opening Wine Configuration (winecfg)"
-WINEPREFIX=$WINEPREFIX winecfg
-
-print_step "Installing Altium Designer"
-echo "Please provide your AltiumLive credentials."
-read -p "Enter your AltiumLive email: " ALTIUM_EMAIL
-read -s -p "Enter your AltiumLive password (input hidden): " ALTIUM_PASSWORD
-echo
-
-ALTIUM_RELATIVE="./Altium/AltiumDesignerSetup_25_0_2.exe"
-ALTIUM_SETUP=$(realpath "$ALTIUM_RELATIVE")
-if [ ! -f "$ALTIUM_SETUP" ]; then
-    echo "Altium Designer setup file not found at $ALTIUM_SETUP. Exiting."
-    exit 1
-fi
-
-if ! WINEPREFIX=$WINEPREFIX wine $ALTIUM_SETUP \
-  -Programs:\"C:\\Program Files\\Altium\\AD25\" \
-  -Documents:\"C:\\Users\\Public\\Documents\\Altium\\AD25\" \
-  -UI:None \
-  -AutoInstall \
-  -InstallAll \
-  -User:\"$ALTIUM_EMAIL\" \
-  -Password:\"$ALTIUM_PASSWORD\"; then
-    echo "Altium Designer installation failed. Exiting."
-    exit 1
-fi
-
-print_step "Packaging Altium Designer"
-mkdir -p "$USER_HOME/Applications"
-cat <<EOF > "$USER_HOME/Applications/AltiumDesigner.sh"
-#!/usr/bin/bash
-export WINEPREFIX=/home/$USERNAME/Altium
-wine /home/$USERNAME/Altium/drive_c/Program\ Files/Altium/AD25/DXP.EXE
-EOF
-chmod +x "$USER_HOME/Applications/AltiumDesigner.sh"
-
-mkdir -p "$USER_HOME/.local/share/applications"
-cat <<EOF > "$USER_HOME/.local/share/applications/AltiumDesigner.desktop"
-[Desktop Entry]
-Name=Altium Designer
-Comment=Run Altium Designer with Wine
-Exec=/home/$USERNAME/Applications/AltiumDesigner.sh
-Type=Application
-Terminal=false
-Icon=altium
-Categories=Development;Engineering;Electronics;
-EOF
-
-update-desktop-database "$USER_HOME/.local/share/applications"
-cd /home/$USERNAME/Altium/drive_c/Program\ Files/Altium/AD25
-zip -r /home/$USERNAME/Applications/AltiumDesigner25.zip *
 
 # ============================================================
 # Kicad
