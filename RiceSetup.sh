@@ -197,8 +197,6 @@ sudo snap install obsidian --classic
 
 print_step "Installing Wine and 64-bit libraries"
 sudo pacman -Syy wine wine-mono wine-gecko winetricks --noconfirm
-export WINEPREFIX=/home/$USERNAME/Altium
-export WINEARCH=win64
 
 # ============================================================
 # Kicad
@@ -244,6 +242,5 @@ done
 # Finalization
 # ============================================================
 print_step "Setup complete!"
-print_step "Only thing missing: git config and download wallpaper engine on steam"
+print_step "Refer to Post-Install Setup"
 sudo reboot
-
