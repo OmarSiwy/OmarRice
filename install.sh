@@ -19,6 +19,7 @@ if ls /sys/firmware/efi/efivars >/dev/null 2>&1; then
 else
     BOOT_MODE="BIOS"
     echo "System detected as BIOS."
+    exit 1
 fi
 
 # ============================================================
@@ -28,70 +29,39 @@ echo "Partitioning disk..."
 fdisk -l
 read -p "Enter the disk to partition (e.g., /dev/sda): " DISK
 
-if [ "$BOOT_MODE" == "UEFI" ]; then
-    echo "Creating GPT partitions for UEFI boot..."
-    fdisk "$DISK" <<EOF
-g # Create a new GPT partition table
-n # Boot partition
-1
-
-+500M
-t
-1
-n # Swap partition
-2
-
-+2000M
-t
-2
-19
-n # Root partition
-3
-
-
-w # Write changes
+echo "Creating GPT partitions for UEFI boot..."
+fdisk "$DISK" <<EOF
+g   # Create a new GPT partition table
+n   # Create Boot partition
+1   # Partition number 1
+    # Default - first sector
++1G  # Size of 1 GB
+t   # Change partition type
+1   # Set type to EFI System
+n   # Create Swap partition
+2   # Partition number 2
+    # Default - next sector
++32G # Size of 32 GB (assuming 32 GB RAM for hibernation)
+t   # Change partition type
+2   # Select partition 2
+19  # Set type to Linux swap
+n   # Create Root partition
+3   # Partition number 3
+    # Default - next sector
+    # Default - use all remaining space
+w   # Write changes
 EOF
 
-    echo "Formatting partitions..."
-    mkfs.fat -F32 "${DISK}1"  # Boot partition
-    mkswap "${DISK}2"         # Swap partition
-    mkfs.ext4 "${DISK}3"      # Root partition
+echo "Formatting partitions..."
+mkfs.fat -F32 "${DISK}1"  # Boot partition
+mkswap "${DISK}2"         # Swap partition
+mkfs.ext4 "${DISK}3"      # Root partition
 
-    echo "Mounting partitions..."
-    mount "${DISK}3" /mnt
-    mkdir -p /mnt/boot
-    mount "${DISK}1" /mnt/boot
-    swapon "${DISK}2"
-
-else
-    echo "Creating MBR partitions for BIOS boot..."
-    fdisk "$DISK" <<EOF
-o # Create a new MBR partition table
-n # Swap partition
-p
-1
-
-+2000M
-t
-82
-n # Root partition
-p
-2
-
-
-a # Mark partition 2 as bootable
-2
-w # Write changes
-EOF
-
-    echo "Formatting partitions..."
-    mkswap "${DISK}1"         # Swap partition
-    mkfs.ext4 "${DISK}2"      # Root partition
-
-    echo "Mounting partitions..."
-    mount "${DISK}2" /mnt
-    swapon "${DISK}1"
-fi
+echo "Mounting partitions..."
+mount "${DISK}3" /mnt
+mkdir -p /mnt/boot
+mount "${DISK}1" /mnt/boot
+swapon "${DISK}2"
 
 echo "Partitioning complete. Verifying disk layout..."
 fdisk -l
@@ -140,20 +110,19 @@ EOF
 # ============================================================
 # Bootloader Installation
 # ============================================================
-echo "Installing GRUB bootloader..."
+echo "Installing rEFInd bootloader..."
 if [ "$BOOT_MODE" == "UEFI" ]; then
     arch-chroot /mnt <<EOF
-pacman -S grub efibootmgr --noconfirm
-grub-install --efi-directory=/boot --bootloader-id=GRUB
-grub-mkconfig -o /boot/grub/grub.cfg
+pacman -S refind --noconfirm
+refind-install
 EOF
 else
-    arch-chroot /mnt <<EOF
-pacman -S grub --noconfirm
-grub-install $DISK
-grub-mkconfig -o /boot/grub/grub.cfg
-EOF
+    echo "Error: rEFInd requires UEFI mode. Legacy/BIOS mode is not supported."
+    exit 1
 fi
+
+git clone https://github.com/Yannis4444/Matrix-rEFInd.git /boot/EFI/refind/themes/Matrix-rEFInd
+echo 'include themes/Matrix-rEFInd/theme.conf' >> /boot/EFI/refind/refind.conf
 
 # ============================================================
 # Final Steps
